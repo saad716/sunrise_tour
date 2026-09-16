@@ -553,6 +553,17 @@
   const closeBtn = document.getElementById('closeBtn');
   const launcherBadge = document.getElementById('launcherBadge');
 
+  /* ═══ FIX: re-parent both fixed elements directly under <body>.
+     position:fixed only anchors to the real viewport if NO ancestor
+     has a transform/filter/perspective/will-change set. Many host
+     pages (theme animations, page builders) wrap embedded snippets
+     in a div that has one of those — which turns that div into the
+     containing block instead of the viewport, making the widget
+     appear to only cover part of the screen. Moving these nodes to
+     be direct children of <body> sidesteps that entirely. ═══ */
+  document.body.appendChild(launcherWrap);
+  document.body.appendChild(chatContainer);
+
   function isMobile() { return window.innerWidth <= 480; }
 
   let savedScrollY = 0;
