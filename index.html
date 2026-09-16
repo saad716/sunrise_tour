@@ -9,71 +9,29 @@
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    /* ─── SUNRISE TOURS PALETTE ───
-       Navy from the site's own theme-color (#494e6c), paired with a
-       warm sunrise orange/gold accent to match the brand name. */
-    --c1: #2B2E48;          /* deep navy — gradient start */
-    --c2: #494e6c;          /* Sunrise Tours slate navy (site theme-color) */
-    --accent: #F2994A;      /* sunrise orange */
-    --accent2: #F6C453;     /* sunrise gold, used in accent gradient */
-    --accent-tint: #FFF3E4; /* warm cream tint */
+    --c1: #2B2E48;
+    --c2: #494e6c;
+    --accent: #F2994A;
+    --accent2: #F6C453;
+    --accent-tint: #FFF3E4;
     --ink: #24263A;
     --muted: #7B7E96;
     --surface: #FBFAF8;
   }
 
-  html, body { height: 100%; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
 
-  body {
-    background:
-      radial-gradient(circle at 15% 20%, rgba(73,78,108,0.06), transparent 45%),
-      radial-gradient(circle at 85% 75%, rgba(242,153,74,0.08), transparent 45%),
-      #F3F2EE;
-    position: relative;
-  }
-
-  /* ═══════════════════════════════════════════
-     WIDGET — fixed to the corner of the host page,
-     exactly like a real embedded support widget.
-  ═══════════════════════════════════════════ */
-  .widget {
-    position: fixed; right: 20px; bottom: 20px;
-    z-index: 2147483000;
-    display: flex; flex-direction: column; align-items: flex-end;
-    gap: 12px;
-  }
-
-  /* ─── CHAT PANEL (hidden until launched) ─── */
-  .shell {
-    width: 380px; height: 640px; max-height: calc(100vh - 108px);
-    display: flex; flex-direction: column; overflow: hidden;
-    background: var(--surface);
-    border-radius: 18px;
-    box-shadow: 0 20px 56px rgba(28,27,42,0.28), 0 4px 14px rgba(28,27,42,0.14);
-    position: relative;
-    transform: translateY(16px) scale(0.96);
-    opacity: 0; pointer-events: none;
-    transition: transform 0.22s cubic-bezier(.2,.9,.3,1.2), opacity 0.18s ease;
-   isolation: isolate;
-  z-index: 2147483647;
-  }
-  .widget.open .shell { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
-
-  @media (max-width: 480px) {
-    .widget { right: 0; bottom: 0; }
-    .shell {
-      width: 100vw; height: 100dvh; max-height: 100dvh; border-radius: 0;
-    }
-    .widget.open .launcher-wrap { display: none; }
-  }
-
-  /* ─── LAUNCHER (bubble + "Live Support" pill) ─── */
+  /* ══════════ LAUNCHER — independent fixed element, same pattern
+     used successfully on the Bot Yama widget ══════════ */
   .launcher-wrap {
-    display: flex; align-items: center; gap: 10px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 2147483000;
   }
-  .widget.open .launcher-wrap { opacity: 0; pointer-events: none; transform: translateY(6px); }
-  .launcher-wrap { transition: opacity 0.16s ease, transform 0.16s ease; }
-
   .live-pill {
     background: #fff; border: 1px solid #ECE8DE; border-radius: 30px;
     padding: 9px 16px 9px 12px; display: flex; align-items: center; gap: 8px;
@@ -83,7 +41,7 @@
   }
   .live-pill-dot {
     width: 8px; height: 8px; border-radius: 50%; background: #4CBB56; flex-shrink: 0;
-    box-shadow: 0 0 0 rgba(76,187,86,0.55); animation: liveDot 2s infinite;
+    animation: liveDot 2s infinite;
   }
   .live-pill-text { display: flex; flex-direction: column; line-height: 1.25; }
   .live-pill-title { font-size: 12.5px; font-weight: 700; color: var(--ink); }
@@ -91,8 +49,6 @@
   @keyframes pillIn { from { opacity: 0; transform: translateX(8px) scale(0.94); } to { opacity: 1; transform: translateX(0) scale(1); } }
   @keyframes liveDot { 0% { box-shadow: 0 0 0 0 rgba(76,187,86,0.55); } 70% { box-shadow: 0 0 0 7px rgba(76,187,86,0); } 100% { box-shadow: 0 0 0 0 rgba(76,187,86,0); } }
 
-  /* Launcher bubble — same sun mark as the chat header avatar/logo,
-     with a soft "buzzing" pulse ring to draw the eye + unread badge. */
   .launcher-btn {
     position: relative; width: 62px; height: 62px; border-radius: 50%;
     border: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
@@ -101,17 +57,15 @@
     box-shadow: 0 10px 26px rgba(242,153,74,0.45), 0 2px 8px rgba(28,27,42,0.18);
     animation: buzz 3.2s ease-in-out infinite;
   }
-  .launcher-btn svg { width: 30px; height: 30px; }
+  .launcher-btn svg { width: 30px; height: 30px; pointer-events: none; }
   .launcher-btn::before, .launcher-btn::after {
     content: ''; position: absolute; inset: 0; border-radius: 50%;
     border: 2px solid rgba(242,153,74,0.55);
     animation: ripple 2.6s ease-out infinite;
+    pointer-events: none;
   }
   .launcher-btn::after { animation-delay: 1.3s; }
-  @keyframes ripple {
-    0%   { transform: scale(1);   opacity: 0.65; }
-    100% { transform: scale(1.7); opacity: 0; }
-  }
+  @keyframes ripple { 0% { transform: scale(1); opacity: 0.65; } 100% { transform: scale(1.7); opacity: 0; } }
   @keyframes buzz {
     0%, 78%, 100% { transform: rotate(0deg) scale(1); }
     80%  { transform: rotate(-8deg) scale(1.04); }
@@ -125,10 +79,41 @@
     width: 19px; height: 19px; border-radius: 50%;
     background: #E4453C; color: #fff; font-size: 10px; font-weight: 800;
     display: flex; align-items: center; justify-content: center;
-    border: 2px solid #F3F2EE; z-index: 2;
+    border: 2px solid #F3F2EE; z-index: 2; pointer-events: none;
+  }
+  .launcher-wrap.hidden { display: none; }
+
+  /* ══════════ CHAT PANEL — its own INDEPENDENT fixed element,
+     not nested inside the launcher's container ══════════ */
+  .chat-container {
+    position: fixed;
+    bottom: 96px; right: 20px;
+    width: 380px; height: 640px; max-height: calc(100vh - 116px);
+    background: var(--surface);
+    border-radius: 18px;
+    box-shadow: 0 20px 56px rgba(28,27,42,0.28), 0 4px 14px rgba(28,27,42,0.14);
+    display: none;
+    flex-direction: column;
+    z-index: 2147483647;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .chat-container.active { display: flex; animation: scaleIn 0.3s ease-out; }
+  @keyframes scaleIn { from { transform: scale(0.92) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+
+  @media (max-width: 480px) {
+    .launcher-wrap { right: 12px; bottom: 12px; }
+    .chat-container {
+      width: 100vw; height: 100vh; height: 100dvh;
+      bottom: 0; right: 0; top: 0; left: 0;
+      border-radius: 0;
+      position: fixed; z-index: 2147483647;
+    }
+    .chat-container.active ~ .launcher-wrap,
+    body.chat-open .launcher-wrap { display: none; }
   }
 
-  /* ─── HEADER (inside chat panel) ─── */
+  /* ─── HEADER ─── */
   .hdr {
     background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 100%);
     padding: 16px 16px 14px;
@@ -186,9 +171,9 @@
 
   /* ─── MESSAGES ─── */
   .msgs {
-    flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
+    flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
     padding: 16px 14px 8px; display: flex; flex-direction: column; gap: 14px;
-    overscroll-behavior: contain; background: var(--surface);
+    overscroll-behavior: contain; background: var(--surface); min-height: 0;
   }
   .msgs::-webkit-scrollbar { width: 4px; }
   .msgs::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
@@ -362,7 +347,7 @@
   .success-msg { font-size: 13px; color: #2C4A28; line-height: 1.6; }
   .success-ref { margin-top: 8px; font-size: 11px; color: #3E8A38; font-weight: 600; }
 
-  .inp-area { padding: 10px 14px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid #ECE8DE; background: #fff; flex-shrink: 0; }
+  .inp-area { padding: 10px 14px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid #ECE8DE; background: #fff; flex-shrink: 0; position: relative; z-index: 2; }
   .inp-row {
     display: flex; align-items: center; gap: 8px; background: #F2EFE6; border: 1.5px solid transparent;
     border-radius: 26px; padding: 9px 10px 9px 16px; transition: border-color 0.2s, background 0.2s;
@@ -391,107 +376,107 @@
   .inp-footer-powered { text-align: center; margin-top: 2px; font-size: 9.5px; color: #BDB9AC; letter-spacing: 0.02em; }
   .inp-footer-powered a { color: #BDB9AC; text-decoration: none; }
   .inp-footer-powered a:hover { color: var(--c2); text-decoration: underline; }
- html.chat-open, body.chat-open {
-  overflow: hidden !important;
-  height: 100% !important;
-  touch-action: none;
-  overscroll-behavior: none;
-}
-body.chat-open { position: fixed; width: 100%; }
+
+  /* Prevents the host page scrolling under the widget on mobile */
+  html.chat-open, body.chat-open {
+    overflow: hidden !important;
+    height: 100% !important;
+    touch-action: none;
+    overscroll-behavior: none;
+  }
+  body.chat-open { position: fixed; width: 100%; }
 </style>
 </head>
 <body>
 
   <!-- ═══════════════════════════════════════════
-       THE WIDGET — this is the part to embed.
-       Drop everything from here to the closing </div>
-       (class="widget") plus the <script> block onto
-       any page, right before </body>.
+       THE WIDGET — drop everything from here down to
+       the closing </script> tag onto any page, right
+       before </body>. The launcher and chat panel are
+       two SEPARATE fixed elements (same pattern as the
+       working Bot Yama widget) rather than one nested
+       inside the other.
   ═══════════════════════════════════════════ -->
-  <div class="widget" id="widget">
 
-    <!-- Launcher: sun-logo bubble (buzzes to draw attention) + Live Support pill -->
-    <div class="launcher-wrap" id="launcher-wrap">
-      <div class="live-pill" id="live-pill" onclick="openWidget()">
-        <span class="live-pill-dot"></span>
-        <span class="live-pill-text">
-          <span class="live-pill-title">Live Support</span>
-          <span class="live-pill-sub">We're online now</span>
-        </span>
-      </div>
-      <button class="launcher-btn" id="launcher-btn" onclick="openWidget()" aria-label="Open live support chat">
-        <span class="launcher-badge" id="launcher-badge">1</span>
+  <!-- LAUNCHER -->
+  <div class="launcher-wrap" id="launcherWrap">
+    <div class="live-pill" id="livePill">
+      <span class="live-pill-dot"></span>
+      <span class="live-pill-text">
+        <span class="live-pill-title">Live Support</span>
+        <span class="live-pill-sub">We're online now</span>
+      </span>
+    </div>
+    <button class="launcher-btn" id="launcherBtn" aria-label="Open live support chat">
+      <span class="launcher-badge" id="launcherBadge">1</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- CHAT PANEL -->
+  <div class="chat-container" id="chatContainer">
+
+    <div class="hdr">
+      <div class="hdr-av" id="hdr-avatar-box">
         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="4.2"/>
           <path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>
         </svg>
-      </button>
+      </div>
+      <div class="hdr-info">
+        <div class="hdr-name" id="hdr-company-name">Sunrise Tours</div>
+        <div class="hdr-agent-row">
+          <span class="hdr-agent-label" id="hdr-agent-tag">Live Support</span>
+          <span class="agent-badge">Online</span>
+        </div>
+      </div>
+      <button class="hdr-close" id="closeBtn" aria-label="Close">✕</button>
     </div>
 
-    <!-- Chat panel -->
-    <div class="shell" id="shell">
+    <div class="subhdr" id="trust-bar"></div>
 
-      <div class="hdr">
-        <div class="hdr-av" id="hdr-avatar-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="4.2"/>
-            <path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>
+    <div class="msgs" id="msgs"></div>
+
+    <div class="inp-area">
+      <div class="inp-row">
+        <button class="inp-icon-btn" aria-label="Attachment">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
           </svg>
-        </div>
-        <div class="hdr-info">
-          <div class="hdr-name" id="hdr-company-name">Sunrise Tours</div>
-          <div class="hdr-agent-row">
-            <span class="hdr-agent-label" id="hdr-agent-tag">Live Support</span>
-            <span class="agent-badge">Online</span>
-          </div>
-        </div>
-        <button class="hdr-close" onclick="closeWidget()" aria-label="Close">✕</button>
+        </button>
+        <button class="inp-icon-btn" aria-label="Emoji">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+          </svg>
+        </button>
+        <input type="text" id="inp" placeholder="Ask about a trip…" onkeydown="onKey(event)" autocomplete="off" autocorrect="off" autocapitalize="sentences" />
+        <button class="send-btn" id="send-btn" onclick="send()" aria-label="Send">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       </div>
-
-      <div class="subhdr" id="trust-bar"></div>
-
-      <div class="msgs" id="msgs"></div>
-
-      <div class="inp-area">
-        <div class="inp-row">
-          <button class="inp-icon-btn" aria-label="Attachment">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-            </svg>
-          </button>
-          <button class="inp-icon-btn" aria-label="Emoji">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
-            </svg>
-          </button>
-          <input type="text" id="inp" placeholder="Ask about a trip…" onkeydown="onKey(event)" autocomplete="off" autocorrect="off" autocapitalize="sentences" />
-          <button class="send-btn" id="send-btn" onclick="send()" aria-label="Send">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-        <div class="inp-footer" id="inp-footer-text">Sunrise Tours · Live Support</div>
-        <div class="inp-footer-powered">Powered by <a href="https://botyama.com" target="_blank" rel="noopener">botyama.com</a></div>
-      </div>
-
+      <div class="inp-footer" id="inp-footer-text">Sunrise Tours · Live Support</div>
+      <div class="inp-footer-powered">Powered by <a href="https://botyama.com" target="_blank" rel="noopener">botyama.com</a></div>
     </div>
+
   </div>
 
 <script>
   /* ═══════════════════════════════════════════════════════════
-     CONFIG — the only block you should need to touch to
-     rebrand, restock trips, or repoint the webhook.
+     CONFIG
   ═══════════════════════════════════════════════════════════ */
   const CONFIG = {
     companyName:  'Sunrise Tours',
     agentTag:     'Live Support',
     footerText:   'Sunrise Tours · Live Support',
-    poweredByUrl: 'https://botyama.com',
     primaryColor:   '#2B2E48',
-    secondaryColor: '#494e6c',   // Sunrise Tours' own site theme colour
-    accentColor:    '#F2994A',   // sunrise orange
-    accent2Color:   '#F6C453',   // sunrise gold
+    secondaryColor: '#494e6c',
+    accentColor:    '#F2994A',
+    accent2Color:   '#F6C453',
     currency: '£',
-    webhookUrl: 'https://sdaew2.app.n8n.cloud/webhook/BOT TEST',   // ← point this at your n8n workflow
+    webhookUrl: 'https://sdaew2.app.n8n.cloud/webhook/BOT TEST',
 
     trustBadges: [
       '★ 5.0 from 950+ travellers',
@@ -508,9 +493,6 @@ body.chat-open { position: fixed; width: 100%; }
       "Talk to a human"
     ],
 
-    // Demo catalogue — shown when the AI reply doesn't return its own
-    // structured `tours` array. Swap in real listings, or have your
-    // n8n workflow return `data.tours` in the same shape.
     demoTours: [
       {
         title: 'Isle of Wight — Beautiful Island',
@@ -561,35 +543,58 @@ body.chat-open { position: fixed; width: 100%; }
   let lastUserMessage = '';
   let hasOpenedOnce = false;
 
- let savedScrollY = 0;
-function isMobile() { return window.innerWidth <= 480; }
+  /* ═══ LAUNCHER TOGGLE — mirrors the Bot Yama widget's approach:
+     two independent fixed elements, toggled via classList, with
+     a real mobile body-scroll lock. ═══ */
+  const launcherWrap = document.getElementById('launcherWrap');
+  const launcherBtn = document.getElementById('launcherBtn');
+  const livePill = document.getElementById('livePill');
+  const chatContainer = document.getElementById('chatContainer');
+  const closeBtn = document.getElementById('closeBtn');
+  const launcherBadge = document.getElementById('launcherBadge');
 
-function lockBodyScroll() {
-  savedScrollY = window.scrollY || window.pageYOffset || 0;
-  document.documentElement.classList.add('chat-open');
-  document.body.classList.add('chat-open');
-  document.body.style.top = `-${savedScrollY}px`;
-}
-function unlockBodyScroll() {
-  document.documentElement.classList.remove('chat-open');
-  document.body.classList.remove('chat-open');
-  document.body.style.top = '';
-  window.scrollTo(0, savedScrollY);
-}
-  /* ═══════════════════════════════════
-     WIDGET OPEN / CLOSE
-  ═══════════════════════════════════ */
- function openWidget() {
-  document.getElementById('widget').classList.add('open');
-  document.getElementById('launcher-badge').style.display = 'none';
-  if (!hasOpenedOnce) { hasOpenedOnce = true; renderOpening(); }
-  if (isMobile()) lockBodyScroll();
-  setTimeout(() => document.getElementById('inp')?.focus(), 240);
-}
-function closeWidget() {
-  document.getElementById('widget').classList.remove('open');
-  if (isMobile()) unlockBodyScroll();
-}
+  function isMobile() { return window.innerWidth <= 480; }
+
+  let savedScrollY = 0;
+  function lockBodyScroll() {
+    savedScrollY = window.scrollY || window.pageYOffset || 0;
+    document.documentElement.classList.add('chat-open');
+    document.body.classList.add('chat-open');
+    document.body.style.top = `-${savedScrollY}px`;
+  }
+  function unlockBodyScroll() {
+    document.documentElement.classList.remove('chat-open');
+    document.body.classList.remove('chat-open');
+    document.body.style.top = '';
+    window.scrollTo(0, savedScrollY);
+  }
+
+  function openWidget() {
+    chatContainer.classList.add('active');
+    launcherWrap.classList.add('hidden');
+    launcherBadge.style.display = 'none';
+    if (!hasOpenedOnce) { hasOpenedOnce = true; renderOpening(); }
+    if (isMobile()) lockBodyScroll();
+    setTimeout(() => document.getElementById('inp')?.focus(), 240);
+  }
+  function closeWidget() {
+    chatContainer.classList.remove('active');
+    launcherWrap.classList.remove('hidden');
+    if (isMobile()) unlockBodyScroll();
+  }
+
+  launcherBtn.addEventListener('click', (e) => { e.preventDefault(); openWidget(); });
+  livePill.addEventListener('click', (e) => { e.preventDefault(); openWidget(); });
+  closeBtn.addEventListener('click', (e) => { e.preventDefault(); closeWidget(); });
+
+  window.addEventListener('resize', () => {
+    if (!isMobile() && document.body.classList.contains('chat-open')) unlockBodyScroll();
+  });
+
+  chatContainer.addEventListener('touchmove', function (e) {
+    const scrollable = e.target.closest('.msgs, .tour-scroll, .subhdr');
+    if (!scrollable) e.preventDefault();
+  }, { passive: false });
 
   /* ═══════════════════════════════════
      MARKDOWN PARSER
@@ -657,7 +662,7 @@ function closeWidget() {
   }
 
   /* ═══════════════════════════════════
-     RENDER OPENING (fires the first time the widget is opened)
+     RENDER OPENING
   ═══════════════════════════════════ */
   function renderOpening() {
     document.getElementById('hdr-company-name').textContent = CONFIG.companyName;
@@ -731,7 +736,6 @@ function closeWidget() {
     return id;
   }
 
-  /* Suggestion pills come from the AI (data.buttons) — no hardcoded fallback. */
   function appendBot(rawContent, options) {
     const m = document.getElementById('msgs');
     const optId = 'opts_' + Date.now();
@@ -780,9 +784,6 @@ function closeWidget() {
 
   /* ═══════════════════════════════════
      TOUR CARDS
-     Card anatomy: photo + duration badge + "from city" badge,
-     title, price, two actions — Details (opens popup, sends
-     nothing) and Book Now (sends a booking prompt to the chat).
   ═══════════════════════════════════ */
   let tourRegistry = {};
 
@@ -826,14 +827,12 @@ function closeWidget() {
     scrollB();
   }
 
-  /* Details button — popup with a bit more info + its own Book Now,
-     which also sends a prompt into the chat. */
   function showTourDetails(key) {
     const t = tourRegistry[key];
     if (!t) return;
     document.getElementById('tour-modal-overlay')?.remove();
 
-    const shell = document.getElementById('shell');
+    const container = document.getElementById('chatContainer');
     const overlay = document.createElement('div');
     overlay.id = 'tour-modal-overlay';
     overlay.className = 'tour-modal-overlay';
@@ -863,14 +862,13 @@ function closeWidget() {
         </div>
       </div>`;
 
-    shell.appendChild(overlay);
+    container.appendChild(overlay);
   }
 
   function closeTourDetails() { document.getElementById('tour-modal-overlay')?.remove(); }
 
   /* ═══════════════════════════════════
-     BOOKING CARD — collects traveller details
-     and sends a booking request through the webhook.
+     BOOKING CARD
   ═══════════════════════════════════ */
   function appendBookingCard(tripName) {
     document.getElementById('booking-card')?.remove();
@@ -1025,9 +1023,6 @@ function closeWidget() {
       const wantsTours = data.action === 'show_tours' || /\[show_tours\]/i.test(reply);
       const wantsBooking = data.action === 'show_booking' || /\[show_booking\]/i.test(reply) || /^i want to book:/i.test(txt);
 
-      // Prefer structured data.tours from the webhook; otherwise, if the
-      // AI's reply signalled tours should be shown, fall back to the demo
-      // catalogue so the card UI is always testable.
       const toursToShow = Array.isArray(data.tours) && data.tours.length > 0
         ? data.tours
         : (wantsTours ? CONFIG.demoTours : null);
@@ -1043,15 +1038,6 @@ function closeWidget() {
       document.getElementById('inp').focus();
     }
   }
-
-  /* ═══════════════════════════════════
-     INIT — widget starts closed, launcher buzzes to
-     draw attention until the visitor taps it.
-  ═══════════════════════════════════ */
-  window.addEventListener('resize', scrollB);
-  document.getElementById('shell').addEventListener('touchmove', (e) => {
-    if (!e.target.closest('.msgs')) e.preventDefault();
-  }, { passive: false });
 </script>
 </body>
 </html>
