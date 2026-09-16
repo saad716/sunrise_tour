@@ -3,573 +3,511 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Botyama AI Leasing Assistant</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+<title>Sunrise Tours — Travel Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --c1: #0A0A0C;
-    --c2: #1C1730;
-    --accent: #6C4CF1;
-    --accent-tint: #EFEAFF;
-    --ink: #17161C;
-    --muted: #8B87A0;
-    --surface: #FAFAFD;
+    /* ─── SUNRISE TOURS PALETTE ───
+       Navy from the site's own theme-color (#494e6c), paired with a
+       warm sunrise orange/gold accent to match the brand name. */
+    --c1: #2B2E48;          /* deep navy — gradient start */
+    --c2: #494e6c;          /* Sunrise Tours slate navy (site theme-color) */
+    --accent: #F2994A;      /* sunrise orange */
+    --accent2: #F6C453;     /* sunrise gold, used in accent gradient */
+    --accent-tint: #FFF3E4; /* warm cream tint */
+    --ink: #24263A;
+    --muted: #7B7E96;
+    --surface: #FBFAF8;
   }
 
-  /* ══════════ LAUNCHER (dimensions/behavior per reference template) ══════════ */
-  .chat-button-wrapper {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    z-index: 2147483000;
-    animation: slideIn 0.5s ease-out;
-  }
-	
-
-	
-  @keyframes slideIn {
-    from { transform: translateX(100px); opacity: 0; }
-    to   { transform: translateX(0); opacity: 1; }
-  }
-  .chat-button-text {
-    background: var(--c1);
-    border: 1px solid var(--accent);
-    padding: 14px 24px;
-    border-radius: 30px;
-    color: #ffffff;
-    font-size: 15px;
-    font-weight: 600;
-    white-space: nowrap;
-    animation: pulse 2s infinite;
-    box-shadow: 0 0 20px rgba(108,76,241,0.4);
-  }
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 20px rgba(108,76,241,0.4); }
-    50%      { box-shadow: 0 0 30px rgba(108,76,241,0.65); }
-  }
-  .chat-button {
-    position: relative;
-    width: 70px; height: 70px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--c1), var(--c2)) !important;
-    border: 2px solid var(--accent);
-    cursor: pointer;
-    box-shadow: 0 0 20px rgba(108,76,241,0.5), 0 8px 30px rgba(0,0,0,0.4);
-    display: flex; align-items: center; justify-content: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-    outline: none;
-  }
-  .chat-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 30px rgba(108,76,241,0.7), 0 12px 40px rgba(0,0,0,0.5);
-    border-color: #8F73FF;
-  }
-  .chat-button:active { transform: scale(1.02); }
-  .chat-button svg { width: 30px; height: 30px; pointer-events: none; }
-
-  .notification-badge {
-    position: absolute; top: -4px; right: -4px;
-    width: 26px; height: 26px;
-    background: #ef4444; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 13px; font-weight: 700;
-    border: 3px solid var(--c1);
-    animation: bounce 1s infinite;
-    pointer-events: none;
-  }
-  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-
-  /* ══════════ CHAT CONTAINER (dimensions per reference template) ══════════ */
-  .chat-container {
-    position: fixed;
-    bottom: 120px; right: 30px;
-    width: 420px; height: 600px;
-    background: var(--surface);
-    border: 1px solid #EAE7F0;
-    border-radius: 20px;
-    box-shadow: 0 0 40px rgba(23,22,28,0.25);
-    display: none;
-    flex-direction: column;
-    z-index: 2147483647;
+  html, body {
+    height: 100%; height: 100dvh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #E9E9EF;
     overflow: hidden;
-    isolation: isolate;
   }
-  .chat-container.active { display: flex; animation: scaleIn 0.3s ease-out; }
-  @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  body { display: flex; flex-direction: column; }
+
+  .shell {
+    width: 100%; height: 100%; height: 100dvh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    background: var(--surface);
+    position: relative;
+  }
+
+  @media (min-width: 600px) {
+    body { align-items: center; justify-content: center; background: #E9E9EF; }
+    .shell {
+      max-width: 420px;
+      height: 92vh; max-height: 820px; min-height: 500px;
+      border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.14);
+    }
+  }
 
   /* ─── HEADER ─── */
   .hdr {
     background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 100%);
     padding: 16px 18px 14px;
+    padding-top: calc(16px + env(safe-area-inset-top));
     display: flex; align-items: center; gap: 13px;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 2;
+    flex-shrink: 0; position: relative; overflow: hidden;
+  }
+  .hdr::after {
+    content: ''; position: absolute; right: -30px; top: -30px;
+    width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(242,153,74,0.35), rgba(242,153,74,0) 70%);
   }
   .hdr-av {
     width: 44px; height: 44px; border-radius: 50%;
     overflow: hidden; flex-shrink: 0;
-    border: 2px solid rgba(108,76,241,0.55);
-    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(242,153,74,0.6);
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
     display: flex; align-items: center; justify-content: center;
+    z-index: 1;
   }
   .hdr-av svg { width: 24px; height: 24px; }
-  .hdr-info { flex: 1; min-width: 0; }
+  .hdr-info { flex: 1; min-width: 0; z-index: 1; }
   .hdr-name {
-    font-family: 'Sora', sans-serif;
     font-size: 16px; font-weight: 800;
     color: #fff; letter-spacing: -0.01em; line-height: 1.2;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .hdr-agent-row { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
-  .hdr-agent-label { font-size: 10px; font-weight: 700; color: #8F73FF; letter-spacing: 0.08em; text-transform: uppercase; }
+  .hdr-agent-label {
+    font-size: 10px; font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
   .agent-badge {
-    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.22);
-    color: #fff; font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 20px;
-    letter-spacing: 0.06em; text-transform: uppercase; display: flex; align-items: center; gap: 3px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.22);
+    color: #fff; font-size: 9px; font-weight: 600;
+    padding: 2px 7px; border-radius: 20px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 3px;
   }
-  .agent-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #7CC576; display: inline-block; }
-  .close-btn {
-    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3);
-    color: rgba(255,255,255,0.85); width: 32px; height: 32px; border-radius: 10px;
-    cursor: pointer; font-size: 22px; font-weight: 300; line-height: 1;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: all 0.3s;
+  .agent-badge::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: #7CC576; display: inline-block;
   }
-  .close-btn:hover { background: rgba(255,255,255,0.25); transform: rotate(90deg); }
-
-#resetBtn {
-  background: #6C4CF1 !important;
-  border-color: #6C4CF1 !important;
-  color: #FFFFFF !important;
-}
-
-#resetBtn {
-  background: #6C4CF1 !important;
-  border-color: #6C4CF1 !important;
-  color: #FFFFFF !important;
-  font-size: 0 !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#resetBtn::before {
-  content: "↻";
-  font-size: 24px;
-  font-weight: 400;
-  line-height: 1;
-  color: #FFFFFF;
-}
-
-#resetBtn:hover {
-  background: #8F73FF !important;
-  border-color: #8F73FF !important;
-}
-
-#resetBtn:active {
-  background: #6C4CF1 !important;
-  border-color: #6C4CF1 !important;
-}
-
+  .hdr-close {
+    background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.65);
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1;
+  }
 
   /* ─── SUBHEADER TRUST BAR ─── */
   .subhdr {
-    background: #fff; border-bottom: 1px solid #EAE7F0;
+    background: #fff; border-bottom: 1px solid #ECE8DE;
     padding: 7px 16px; display: flex; align-items: center; gap: 10px;
     flex-shrink: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
   }
   .subhdr::-webkit-scrollbar { display: none; }
-  .sub-item { display: flex; align-items: center; gap: 4px; font-size: 10.5px; color: var(--muted); font-weight: 500; white-space: nowrap; flex-shrink: 0; padding-right: 12px; }
-  .sub-item:not(:last-child) { border-right: 1px solid #E4E0EE; margin-right: 2px; }
+  .sub-item {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 10.5px; color: var(--muted); font-weight: 600;
+    white-space: nowrap; flex-shrink: 0; padding-right: 12px;
+  }
+  .sub-item:not(:last-child) { border-right: 1px solid #E9E5D9; margin-right: 2px; }
+  .sub-item.star { color: var(--accent); }
 
   /* ─── MESSAGES ─── */
   .msgs {
-    flex: 1 1 auto; overflow-y: scroll; overflow-x: hidden; -webkit-overflow-scrolling: touch;
-    padding: 16px 14px 8px; display: flex; flex-direction: column; gap: 14px;
-    overscroll-behavior: contain; background: var(--surface); min-height: 0;
-    touch-action: pan-y;
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 14px 8px;
+    display: flex; flex-direction: column; gap: 14px;
+    overscroll-behavior: contain;
+    background: var(--surface);
   }
-  .msgs::-webkit-scrollbar { width: 6px; }
-  .msgs::-webkit-scrollbar-thumb { background: rgba(10,10,12,0.12); border-radius: 3px; }
+  .msgs::-webkit-scrollbar { width: 4px; }
+  .msgs::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
 
-  .date-pill { text-align: center; font-size: 11px; color: var(--muted); font-weight: 500; letter-spacing: 0.02em; padding: 2px 0 4px; }
+  .date-pill { text-align: center; font-size: 11px; color: var(--muted); font-weight: 500; padding: 2px 0 4px; }
 
   .agent-row { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
-  .agent-row-av { width: 28px; height: 28px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: linear-gradient(135deg, var(--c1), var(--c2)); display: flex; align-items: center; justify-content: center; }
+  .agent-row-av {
+    width: 28px; height: 28px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--c1), var(--c2));
+    display: flex; align-items: center; justify-content: center;
+  }
   .agent-row-av svg { width: 15px; height: 15px; }
   .agent-row-name { font-size: 11.5px; font-weight: 700; color: var(--ink); letter-spacing: 0.01em; }
-  .agent-row-badge { font-size: 9px; font-weight: 700; color: var(--accent); background: var(--accent-tint); padding: 1px 6px; border-radius: 10px; letter-spacing: 0.05em; text-transform: uppercase; display: flex; align-items: center; gap: 3px; }
+  .agent-row-badge {
+    font-size: 9px; font-weight: 700; color: var(--c2);
+    background: var(--accent-tint); padding: 1px 6px; border-radius: 10px;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 3px;
+  }
   .agent-row-badge svg { width: 9px; height: 9px; }
   .agent-row-time { font-size: 10px; color: var(--muted); margin-left: auto; }
 
   .msg-group { animation: fadeUp 0.22s ease; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
   .msg { display: flex; gap: 8px; margin-bottom: 4px; }
   .msg.u { flex-direction: row-reverse; }
-  .u-av { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; background: var(--accent-tint); color: var(--accent); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; align-self: flex-end; }
+
+  .u-av {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    background: var(--accent-tint); color: var(--c2); font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; align-self: flex-end;
+  }
 
   .bub { max-width: 78%; padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.65; word-break: break-word; }
-  .bub.b { background: #F1EFF9; color: var(--ink); border-top-left-radius: 4px; }
+  .bub.b { background: #F2EFE6; color: var(--ink); border-top-left-radius: 4px; }
   .bub.u { background: linear-gradient(135deg, var(--c1), var(--c2)); color: #fff; border-top-right-radius: 4px; }
 
-  .bub.b strong { color: var(--accent); font-weight: 600; }
+  .bub.b strong { color: var(--c2); font-weight: 700; }
   .bub.b em { font-style: italic; color: var(--muted); }
   .bub.b ul, .bub.b ol { margin: 6px 0 4px 18px; }
   .bub.b li { margin-bottom: 4px; line-height: 1.55; }
   .bub.b p { margin-bottom: 6px; }
   .bub.b p:last-child { margin-bottom: 0; }
   .bub.b h3 { font-size: 14px; font-weight: 700; color: var(--ink); margin: 7px 0 4px; }
-  .bub.b a { color: var(--accent); text-decoration: underline; word-break: break-all; }
-  .bub.b code { background: #E7E2F5; color: var(--ink); border-radius: 4px; padding: 1px 5px; font-size: 12px; font-family: monospace; }
+  .bub.b a { color: var(--c2); text-decoration: underline; word-break: break-all; }
+  .bub.b code { background: #E9E4D5; color: var(--ink); border-radius: 4px; padding: 1px 5px; font-size: 12px; font-family: monospace; }
   .bub.b blockquote { border-left: 3px solid var(--accent); padding-left: 10px; margin: 6px 0; color: var(--muted); font-style: italic; }
-  .bub.b hr { border: none; border-top: 1px solid #E4E0EE; margin: 8px 0; }
+  .bub.b hr { border: none; border-top: 1px solid #E9E5D9; margin: 8px 0; }
 
-  .options-wrap { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 7px; animation: fadeUp 0.25s ease 0.1s both; }
-  .opt-pill { background: #fff; border: 1.5px solid var(--accent); color: var(--accent); font-size: 13px; font-weight: 500; padding: 7px 15px; border-radius: 50px; cursor: pointer; transition: all 0.16s; white-space: normal; text-align: center; line-height: 1.35; font-family: 'Inter', sans-serif; }
-  .opt-pill:hover { background: var(--accent); color: #fff; }
+  .options-wrap {
+    margin-top: 4px; display: flex; flex-wrap: wrap; gap: 7px;
+    animation: fadeUp 0.25s ease 0.1s both;
+  }
+  .opt-pill {
+    background: #fff; border: 1.5px solid var(--accent); color: var(--c2);
+    font-size: 13px; font-weight: 500; padding: 7px 15px; border-radius: 50px;
+    cursor: pointer; transition: all 0.16s; -webkit-tap-highlight-color: transparent;
+    white-space: normal; text-align: center; line-height: 1.35; font-family: 'Inter', sans-serif;
+  }
+  .opt-pill:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
   .opt-pill:active { transform: scale(0.97); }
-  .opt-pill:disabled { opacity: 0.45; cursor: not-allowed; border-color: #CFC9E2; color: #CFC9E2; }
+  .opt-pill:disabled { opacity: 0.45; cursor: not-allowed; border-color: #D6D2C4; color: #B9B6A8; }
 
-  .tdots { display: flex; gap: 4px; align-items: center; padding: 11px 16px; background: #F1EFF9; border-radius: 18px; border-top-left-radius: 4px; width: fit-content; }
+  .tdots {
+    display: flex; gap: 4px; align-items: center; padding: 11px 16px;
+    background: #F2EFE6; border-radius: 18px; border-top-left-radius: 4px; width: fit-content;
+  }
   .d { width: 6px; height: 6px; background: var(--muted); border-radius: 50%; opacity: 0.7; animation: bop 1.2s infinite; }
   .d:nth-child(2) { animation-delay: .2s; }
   .d:nth-child(3) { animation-delay: .4s; }
   @keyframes bop { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
 
   .bub.err { background: #FBE8E6; color: #A6362C; border-top-left-radius: 4px; }
-  .retry-btn { display: inline-block; margin-top: 6px; background: #fff; border: 1px solid #E5AFA8; color: #A6362C; font-size: 12px; padding: 4px 10px; border-radius: 12px; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.15s; }
+  .retry-btn {
+    display: inline-block; margin-top: 6px; background: #fff; border: 1px solid #E5AFA8;
+    color: #A6362C; font-size: 12px; padding: 4px 10px; border-radius: 12px; cursor: pointer;
+    font-family: 'Inter', sans-serif; transition: background 0.15s;
+  }
   .retry-btn:hover { background: #A6362C; color: #fff; }
 
+  /* ─── TOUR CARDS (image, duration/price badges, 2 actions) ─── */
+  .tour-scroll {
+    display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; margin-top: 2px;
+    -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity;
+  }
+  .tour-scroll::-webkit-scrollbar { height: 4px; }
+  .tour-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
+  .tour-card {
+    flex: 0 0 228px; scroll-snap-align: start;
+    background: #fff; border: 1px solid #ECE8DE; border-radius: 14px;
+    overflow: hidden; box-shadow: 0 2px 14px rgba(36,38,58,0.09);
+    display: flex; flex-direction: column;
+  }
+  .tour-img-wrap { position: relative; width: 100%; height: 130px; background: #DCDDE8; overflow: hidden; }
+  .tour-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tour-badge {
+    position: absolute; top: 8px; left: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.02em;
+    padding: 4px 9px; border-radius: 20px; font-family: 'Inter', sans-serif;
+    box-shadow: 0 2px 6px rgba(242,153,74,0.35);
+  }
+  .tour-from-badge {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(36,38,58,0.72); color: #fff; font-size: 9.5px; font-weight: 600;
+    padding: 3px 8px; border-radius: 20px; letter-spacing: 0.02em;
+  }
+  .tour-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .tour-title { font-size: 13.5px; font-weight: 700; color: var(--ink); line-height: 1.3; min-height: 35px; }
+  .tour-meta {
+    display: flex; align-items: center; gap: 6px; font-size: 10.5px;
+    color: var(--muted); font-weight: 600; letter-spacing: 0.01em;
+  }
+  .tour-price { font-size: 17px; font-weight: 800; color: var(--accent); line-height: 1.2; margin-top: 1px; }
+  .tour-price span { font-size: 10.5px; font-weight: 500; color: var(--muted); }
+  .tour-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 7px; }
+  .tour-btn {
+    width: 100%; font-size: 12.5px; font-weight: 700; padding: 8px 10px;
+    border-radius: 9px; cursor: pointer; transition: all 0.16s; font-family: 'Inter', sans-serif;
+  }
+  .tour-btn.details { background: #fff; border: 1.5px solid #E3DFD1; color: var(--ink); }
+  .tour-btn.details:hover { border-color: var(--c2); background: var(--accent-tint); }
+  .tour-btn.book {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: 1.5px solid transparent; color: #fff;
+  }
+  .tour-btn.book:hover { opacity: 0.9; }
+
+  /* ─── TOUR DETAIL POPUP ─── */
+  .tour-modal-overlay {
+    position: absolute; inset: 0; background: rgba(36,38,58,0.55);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; z-index: 40; animation: fadeUp 0.18s ease;
+  }
+  .tour-modal { background: #fff; border-radius: 16px; width: 100%; max-width: 300px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+  .tour-modal-img { width: 100%; height: 150px; background: #DCDDE8; object-fit: cover; display: block; }
+  .tour-modal-body { padding: 16px 18px 18px; }
+  .tour-modal-title { font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+  .tour-modal-desc { font-size: 12px; color: var(--muted); line-height: 1.55; margin-bottom: 10px; }
+  .tour-modal-price { font-size: 19px; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+  .tour-modal-price span { font-size: 11px; font-weight: 500; color: var(--muted); }
+  .tour-modal-meta {
+    display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--ink);
+    font-weight: 600; padding: 10px 0; border-top: 1px solid #EFEBE0;
+  }
+  .tour-modal-meta span { background: var(--accent-tint); color: var(--c2); padding: 4px 9px; border-radius: 20px; }
+  .tour-modal-book {
+    width: 100%; margin-top: 10px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border: none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700;
+    font-family: 'Inter', sans-serif; cursor: pointer; transition: opacity 0.18s;
+  }
+  .tour-modal-book:hover { opacity: 0.9; }
+  .tour-modal-close {
+    position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(36,38,58,0.6); border: none; color: #fff; font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tour-modal-img-wrap { position: relative; }
+
+  /* ─── BOOKING CARD ─── */
   .card-wrap { max-width: 94%; animation: fadeUp 0.32s ease; }
-  .card { background: #fff; border: 1px solid #EAE7F0; border-radius: 16px; border-top-left-radius: 4px; overflow: hidden; box-shadow: 0 2px 16px rgba(23,22,28,0.1); }
+  .card { background: #fff; border: 1px solid #ECE8DE; border-radius: 16px; border-top-left-radius: 4px; overflow: hidden; box-shadow: 0 2px 16px rgba(36,38,58,0.1); }
   .card-hdr { background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 100%); padding: 14px 16px 12px; }
-  .card-hdr-title { font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 2px; }
+  .card-hdr-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
   .card-hdr-sub { font-size: 10.5px; color: rgba(255,255,255,0.62); font-weight: 400; }
-
-  .ck-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 14px 14px 10px; }
-  .ck-plan { border: 1.5px solid #E4E0EE; border-radius: 12px; padding: 10px 10px 8px; cursor: pointer; transition: all 0.18s; text-align: center; position: relative; background: #FAFAFD; }
-  .ck-plan:hover { border-color: var(--accent); background: var(--accent-tint); }
-  .ck-plan.selected { border-color: var(--accent); background: var(--accent-tint); box-shadow: 0 2px 10px rgba(108,76,241,0.22); }
-  .ck-plan.selected::after { content: '✓'; position: absolute; top: 6px; right: 8px; font-size: 11px; color: var(--accent); font-weight: 800; }
-  .ck-plan-name { font-size: 10px; font-weight: 600; color: var(--muted); margin-bottom: 4px; letter-spacing: 0.04em; text-transform: uppercase; }
-  .ck-plan-price { font-size: 22px; font-weight: 700; color: var(--ink); line-height: 1; }
-  .ck-plan-note { font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.3; }
-
-  .card-fields { padding: 0 14px; display: flex; flex-direction: column; gap: 8px; }
-  .ck-input, .ck-select, .ck-textarea { width: 100%; padding: 10px 13px; border: 1.5px solid #E4E0EE; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px; color: var(--ink); background: #FAFAFD; outline: none; transition: border-color 0.18s, box-shadow 0.18s; }
-  .ck-textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
-  .ck-select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238B87A0' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; }
-  .ck-input:focus, .ck-select:focus, .ck-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,76,241,0.16); background: #fff; }
-  .ck-input::placeholder, .ck-textarea::placeholder { color: #A9A5BC; }
-  .field-label { font-size: 10.5px; font-weight: 600; color: var(--muted); letter-spacing: 0.03em; text-transform: uppercase; margin-bottom: -3px; }
+  .card-fields { padding: 14px 14px 0; display: flex; flex-direction: column; gap: 8px; }
+  .ck-input, .ck-select {
+    width: 100%; padding: 10px 13px; border: 1.5px solid #E3DFD1; border-radius: 10px;
+    font-family: 'Inter', sans-serif; font-size: 14px; color: var(--ink); background: #FBFAF8;
+    outline: none; transition: border-color 0.18s, box-shadow 0.18s;
+  }
+  .ck-select { appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237B7E96' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat; background-position: right 12px center;
+  }
+  .ck-input:focus, .ck-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(242,153,74,0.16); background: #fff; }
+  .ck-input::placeholder { color: #ABA79A; }
   .ck-error { font-size: 12px; color: #A6362C; min-height: 16px; padding: 0 2px; }
-  .ck-pay-btn { width: 100%; background: linear-gradient(135deg, var(--c1), var(--c2)); color: #fff; border: none; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer; transition: opacity 0.18s, transform 0.12s; display: flex; align-items: center; justify-content: center; gap: 7px; }
-  .ck-pay-btn:hover { opacity: 0.92; }
-  .ck-pay-btn:active { transform: scale(0.98); }
-  .ck-pay-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-  .ck-pay-btn .spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
-  .ck-pay-btn.loading .spinner { display: block; }
-  .ck-pay-btn.loading .btn-label { opacity: 0.7; }
+  .ck-submit-btn {
+    width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff;
+    border: none; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 700;
+    font-family: 'Inter', sans-serif; cursor: pointer; transition: opacity 0.18s, transform 0.12s;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ck-submit-btn:hover { opacity: 0.92; }
+  .ck-submit-btn:active { transform: scale(0.98); }
+  .ck-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .ck-submit-btn .spinner {
+    width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+    border-radius: 50%; animation: spin 0.7s linear infinite; display: none;
+  }
+  .ck-submit-btn.loading .spinner { display: block; }
+  .ck-submit-btn.loading .btn-label { opacity: 0.7; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .ck-divider { height: 1px; background: #EFECF7; margin: 10px 14px; }
-  .ck-footer { text-align: center; padding: 10px 14px 14px; font-size: 10px; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 5px; }
+  .ck-divider { height: 1px; background: #F0ECDF; margin: 14px 14px 0; }
+  .ck-footer {
+    text-align: center; padding: 10px 14px 14px; font-size: 10px; color: var(--muted);
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
   .ck-footer svg { width: 11px; height: 11px; opacity: 0.6; }
 
-  .urg-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-  .urg-tile { border: 1.5px solid #E4E0EE; border-radius: 10px; padding: 8px 4px; text-align: center; cursor: pointer; transition: all 0.16s; font-size: 11px; font-weight: 600; color: var(--muted); background: #FAFAFD; }
-  .urg-tile.selected { border-color: var(--accent); background: var(--accent-tint); color: var(--accent); }
-  .urg-tile.selected.emergency { border-color: #C5473C; background: #FBE8E6; color: #A6362C; }
-
-  .prop-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; margin-top: 2px; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
-  .prop-scroll::-webkit-scrollbar { height: 4px; }
-  .prop-scroll::-webkit-scrollbar-thumb { background: rgba(10,10,12,0.12); border-radius: 2px; }
-  .prop-card { flex: 0 0 220px; scroll-snap-align: start; background: #fff; border: 1px solid #EAE7F0; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 14px rgba(23,22,28,0.08); display: flex; flex-direction: column; }
-  .prop-img-wrap { position: relative; width: 100%; height: 128px; background: #E4E0EE; overflow: hidden; }
-  .prop-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .prop-badge { position: absolute; top: 8px; left: 8px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.02em; padding: 4px 9px; border-radius: 20px; font-family: 'Inter', sans-serif; }
-  .prop-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; }
-  .prop-title { font-family: 'Sora', sans-serif; font-size: 13.5px; font-weight: 700; color: var(--ink); line-height: 1.3; }
-  .prop-price { font-size: 18px; font-weight: 700; color: var(--accent); line-height: 1.2; }
-  .prop-price span { font-size: 11px; font-weight: 500; color: var(--muted); }
-  .prop-meta { display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: var(--muted); font-weight: 500; font-family: 'SFMono-Regular', 'Menlo', 'Consolas', monospace; letter-spacing: 0.01em; margin-top: 1px; }
-  .prop-pets { font-size: 10.5px; color: var(--muted); line-height: 1.4; }
-  .prop-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 7px; }
-  .prop-btn { width: 100%; font-size: 12.5px; font-weight: 600; padding: 8px 10px; border-radius: 9px; cursor: pointer; transition: all 0.16s; font-family: 'Inter', sans-serif; }
-  .prop-btn.view { background: #fff; border: 1.5px solid #E4E0EE; color: var(--ink); }
-  .prop-btn.view:hover { border-color: var(--accent); background: var(--accent-tint); }
-  .prop-btn.book { background: var(--accent); border: 1.5px solid var(--accent); color: #fff; }
-  .prop-btn.book:hover { opacity: 0.88; }
-
-  .prop-modal-overlay { position: absolute; inset: 0; background: rgba(10,10,12,0.55); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 40; animation: fadeUp 0.18s ease; }
-  .prop-modal { background: #fff; border-radius: 16px; width: 100%; max-width: 300px; overflow: hidden; box-shadow: 0 12px 40px rgba(10,10,12,0.32); }
-  .prop-modal-img { width: 100%; height: 140px; background: #E4E0EE; object-fit: cover; display: block; }
-  .prop-modal-body { padding: 16px 18px 18px; }
-  .prop-modal-title { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
-  .prop-modal-address { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-  .prop-modal-price { font-size: 19px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
-  .prop-modal-price span { font-size: 11px; font-weight: 500; color: var(--muted); }
-  .prop-modal-meta { display: flex; gap: 12px; font-size: 12px; color: var(--ink); font-weight: 500; padding: 10px 0; border-top: 1px solid #EFECF7; }
-  .prop-modal-pets { font-size: 12px; color: var(--ink); padding-top: 8px; line-height: 1.5; }
-  .prop-modal-pets strong { color: var(--accent); font-weight: 600; }
-  .prop-modal-close { position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border-radius: 50%; background: rgba(10,10,12,0.55); border: none; color: #fff; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .prop-modal-img-wrap { position: relative; }
-
-  .success-bub { background: #EAF4E9; border: 1.5px solid #9AC694; border-radius: 18px; border-top-left-radius: 4px; padding: 14px 16px; max-width: 85%; }
-  .success-title { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: #2E6B2A; margin-bottom: 5px; }
+  .success-bub {
+    background: #EAF4E9; border: 1.5px solid #9AC694; border-radius: 18px; border-top-left-radius: 4px;
+    padding: 14px 16px; max-width: 85%;
+  }
+  .success-title { font-size: 15px; font-weight: 700; color: #2E6B2A; margin-bottom: 5px; }
   .success-msg { font-size: 13px; color: #2C4A28; line-height: 1.6; }
   .success-ref { margin-top: 8px; font-size: 11px; color: #3E8A38; font-weight: 600; }
 
-  /* ─── INPUT AREA ─── */
-  .inp-area { padding: 10px 14px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid #EAE7F0; background: #fff; flex-shrink: 0; position: relative; z-index: 2; }
-  .inp-row { display: flex; align-items: center; gap: 8px; background: #F1EFF9; border: 1.5px solid transparent; border-radius: 26px; padding: 9px 10px 9px 16px; transition: border-color 0.2s, background 0.2s; }
-  .inp-row:focus-within { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(108,76,241,0.14); }
-  .inp-icon-btn { background: none; border: none; cursor: pointer; color: var(--muted); padding: 2px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: color 0.15s; }
+  .inp-area { padding: 10px 14px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid #ECE8DE; background: #fff; flex-shrink: 0; }
+  .inp-row {
+    display: flex; align-items: center; gap: 8px; background: #F2EFE6; border: 1.5px solid transparent;
+    border-radius: 26px; padding: 9px 10px 9px 16px; transition: border-color 0.2s, background 0.2s;
+  }
+  .inp-row:focus-within { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(242,153,74,0.14); }
+  .inp-icon-btn {
+    background: none; border: none; cursor: pointer; color: var(--muted); padding: 2px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; transition: color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
   .inp-icon-btn:hover { color: var(--ink); }
   .inp-icon-btn svg { width: 18px; height: 18px; }
-  .inp-row input { flex: 1; background: none; border: none; outline: none; color: var(--ink); font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 400; caret-color: var(--accent); min-width: 0; }
-  .inp-row input::placeholder { color: #A9A5BC; }
-  .send-btn { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--c1), var(--c2)); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.15s, transform 0.12s; flex-shrink: 0; }
+  .inp-row input {
+    flex: 1; background: none; border: none; outline: none; color: var(--ink);
+    font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 400; caret-color: var(--accent); min-width: 0;
+  }
+  .inp-row input::placeholder { color: #ABA79A; }
+  .send-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.15s, transform 0.12s; flex-shrink: 0; -webkit-tap-highlight-color: transparent;
+  }
   .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .send-btn:not(:disabled):active { opacity: 0.8; transform: scale(0.94); }
   .send-btn svg { width: 16px; height: 16px; }
   .inp-footer { text-align: center; margin-top: 6px; font-size: 10px; color: var(--muted); letter-spacing: 0.01em; }
-  .inp-footer-powered { text-align: center; margin-top: 2px; font-size: 9.5px; color: #BCB8CC; letter-spacing: 0.02em; }
-  .inp-footer-powered a { color: #BCB8CC; text-decoration: none; }
-  .inp-footer-powered a:hover { color: var(--accent); text-decoration: underline; }
-
-  /* ══════════ MOBILE — exact dimensions/technique per reference template ══════════ */
-  @media (max-width: 768px) {
-    .chat-button-wrapper { bottom: 20px; right: 20px; }
-    .chat-button-text { display: none; }
-    .chat-button { width: 60px; height: 60px; border-width: 2px; }
-    .chat-button svg { width: 26px; height: 26px; }
-    .notification-badge { width: 22px; height: 22px; font-size: 11px; }
-
-    .chat-container {
-      width: 100vw; height: 100vh; height: 100dvh;
-      bottom: 0; right: 0; top: 0; left: 0;
-      border-radius: 0; border: none;
-      position: fixed; z-index: 2147483647;
-    }
-    .hdr { padding: 16px 18px calc(14px + env(safe-area-inset-top)); padding-top: calc(16px + env(safe-area-inset-top)); }
-    .close-btn { width: 34px; height: 34px; font-size: 24px; }
-
-    html.chat-open, body.chat-open {
-      overflow: hidden !important;
-      height: 100% !important;
-      touch-action: none;
-      overscroll-behavior: none;
-    }
-    body.chat-open { position: fixed; width: 100%; }
-  }
-	
-/* RESET BUTTON — force color in every state */
-button[onclick*="resetBotYamaChat"],
-button[onclick*="resetBotYamaChat"]:hover,
-button[onclick*="resetBotYamaChat"]:focus,
-button[onclick*="resetBotYamaChat"]:active {
-    background: #6C4CF1 !important;
-    background-color: #6C4CF1 !important;
-    border-color: #6C4CF1 !important;
-    color: #FFFFFF !important;
-    box-shadow: none !important;
-}
-
-
-
+  .inp-footer-powered { text-align: center; margin-top: 2px; font-size: 9.5px; color: #BDB9AC; letter-spacing: 0.02em; }
+  .inp-footer-powered a { color: #BDB9AC; text-decoration: none; }
+  .inp-footer-powered a:hover { color: var(--c2); text-decoration: underline; }
 </style>
 </head>
 <body>
+<div class="shell" id="shell">
 
-  <!-- LAUNCHER -->
-  <div class="chat-button-wrapper">
-    <div class="chat-button-text">Live Demo here!</div>
-    <button class="chat-button" id="chatButton" aria-label="Open chat">
-      <div class="notification-badge" id="notificationBadge">1</div>
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="4" y="8" width="16" height="11" rx="3"/>
-        <path d="M9 8V6a3 3 0 0 1 6 0v2"/>
-        <circle cx="9" cy="13.5" r="1.2" fill="#fff" stroke="none"/>
-        <circle cx="15" cy="13.5" r="1.2" fill="#fff" stroke="none"/>
-        <path d="M9 17h6"/>
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-av" id="hdr-avatar-box">
+      <!-- Sun glyph — matches "Sunrise" branding, AI agent not a stock photo -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>
       </svg>
-    </button>
+    </div>
+    <div class="hdr-info">
+      <div class="hdr-name" id="hdr-company-name">Sunrise Tours</div>
+      <div class="hdr-agent-row">
+        <span class="hdr-agent-label" id="hdr-agent-tag">Travel Assistant</span>
+        <span class="agent-badge">Online</span>
+      </div>
+    </div>
+    <button class="hdr-close" aria-label="Close">✕</button>
   </div>
 
-  <!-- CHAT CONTAINER -->
-  <div class="chat-container" id="chatContainer">
+  <!-- SUBHEADER TRUST BAR -->
+  <div class="subhdr" id="trust-bar"></div>
 
-    <div class="hdr">
-      <div class="hdr-av" id="hdr-avatar-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="4" y="8" width="16" height="11" rx="3"/>
-          <path d="M9 8V6a3 3 0 0 1 6 0v2"/>
-          <circle cx="9" cy="13.5" r="1.2" fill="var(--accent)" stroke="none"/>
-          <circle cx="15" cy="13.5" r="1.2" fill="var(--accent)" stroke="none"/>
-          <path d="M9 17h6"/>
-        </svg>
-      </div>
-      <div class="hdr-info">
-        <div class="hdr-name" id="hdr-company-name">Bot Yama AI</div>
-        <div class="hdr-agent-row">
-          <span class="hdr-agent-label" id="hdr-agent-tag">AI Leasing Assistant</span>
-          <span class="agent-badge">Online</span>
-        </div>
-      </div>
-      <!-- RESET BUTTON: wipes chat back to a fresh 0-state conversation -->
-      <button class="close-btn" id="resetBtn" title="Reset chat" aria-label="Reset chat" style="margin-right:4px;">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="1 4 1 10 7 10"/>
-          <path d="M3.51 15a9 9 0 1 0 .49-9.36L1 10"/>
+  <!-- MESSAGES -->
+  <div class="msgs" id="msgs"></div>
+
+  <!-- INPUT AREA -->
+  <div class="inp-area">
+    <div class="inp-row">
+      <button class="inp-icon-btn" aria-label="Attachment">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
         </svg>
       </button>
-      <button class="close-btn" id="closeBtn" aria-label="Close">×</button>
+      <button class="inp-icon-btn" aria-label="Emoji">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+        </svg>
+      </button>
+      <input type="text" id="inp" placeholder="Ask about a trip…" onkeydown="onKey(event)" autocomplete="off" autocorrect="off" autocapitalize="sentences" />
+      <button class="send-btn" id="send-btn" onclick="send()" aria-label="Send">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
     </div>
-
-    <div class="subhdr" id="trust-bar"></div>
-
-    <div class="msgs" id="msgs"></div>
-
-    <div class="inp-area">
-      <div class="inp-row">
-        <button class="inp-icon-btn" aria-label="Attachment">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-          </svg>
-        </button>
-        <button class="inp-icon-btn" aria-label="Emoji">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
-          </svg>
-        </button>
-        <input type="text" id="inp" placeholder="Write a message…" onkeydown="onKey(event)" autocomplete="off" autocorrect="off" autocapitalize="sentences"/>
-        <button class="send-btn" id="send-btn" onclick="send()" aria-label="Send">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-      </div>
-      <div class="inp-footer" id="inp-footer-text">Bot Yama AI · AI Leasing Assistant</div>
-      <div class="inp-footer-powered">Powered by <a href="https://botyama.com" target="_blank" rel="noopener">botyama.com</a></div>
-    </div>
-
+    <div class="inp-footer" id="inp-footer-text">Sunrise Tours · Travel Assistant</div>
+    <div class="inp-footer-powered">Powered by <a href="https://botyama.com" target="_blank" rel="noopener">botyama.com</a></div>
   </div>
 
+</div>
+
 <script>
-  /* ═══ CONFIG ═══ */
+  /* ═══════════════════════════════════════════════════════════
+     CONFIG — the only block you should need to touch to
+     rebrand, restock trips, or repoint the webhook.
+  ═══════════════════════════════════════════════════════════ */
   const CONFIG = {
-    companyName: 'Bot Yama AI',
-    agentTag: 'AI Leasing Assistant',
-    currency: '$',
-    applicationFee: 50,
-    webhookUrl: 'https://sdaew2.app.n8n.cloud/webhook/BOTyama',
-    trustBadges: ['Verified Listings', '24/7 Maintenance', 'Secure Payments', 'Same-Day Tours'],
-    maintenanceCategories: ['Plumbing', 'Electrical', 'HVAC / Heating & Cooling', 'Appliance', 'Pest Control', 'Locks / Keys', 'Windows / Doors', 'Other']
+    companyName:  'Sunrise Tours',
+    agentTag:     'Travel Assistant',
+    footerText:   'Sunrise Tours · Travel Assistant',
+    poweredByUrl: 'https://botyama.com',
+    primaryColor:   '#2B2E48',
+    secondaryColor: '#494e6c',   // Sunrise Tours' own site theme colour
+    accentColor:    '#F2994A',   // sunrise orange
+    accent2Color:   '#F6C453',   // sunrise gold
+    currency: '£',
+    webhookUrl: 'https://sdaew2.app.n8n.cloud/webhook/BOT TEST',   // ← point this at your n8n workflow
+
+    trustBadges: [
+      '★ 5.0 from 950+ travellers',
+      '30+ destinations',
+      'London · Birmingham · Manchester',
+      'Coach & ferry included'
+    ],
+
+    starterOptions: [
+      "Show me your most popular trips",
+      "Day trips from London",
+      "I want to book a tour",
+      "Where do you pick up from?",
+      "Talk to a human"
+    ],
+
+    // Demo catalogue — shown when the AI reply doesn't return its own
+    // structured `properties`/`tours` array. Swap in real listings, or
+    // have your n8n workflow return `data.tours` in the same shape.
+    demoTours: [
+      {
+        title: 'Isle of Wight — Beautiful Island',
+        from: 'From London',
+        duration: '16 hours',
+        price: '55',
+        image: 'https://www.sunrisetours.co.uk/images/hero.webp',
+        description: 'A relaxing one-day escape with stunning coastal views, the famous Needles Chairlift and free time at Shanklin Beach — coach and ferry travel included.',
+        url: 'https://www.sunrisetours.co.uk/trips/isle-of-wight-beautiful-island-from-london'
+      },
+      {
+        title: 'Durdle Door & Lulworth Cove',
+        from: 'Jurassic Coast · London',
+        duration: '16 hours',
+        price: '50',
+        image: 'https://www.sunrisetours.co.uk/images/hero.webp',
+        description: "England's Jurassic Coast in a day — dramatic cliffs, coastal hikes, and free time to explore one of the UK's most iconic seaside landscapes.",
+        url: 'https://www.sunrisetours.co.uk/trips/durdle-door-lulworth-cove-jurassic-coast-day-trip'
+      },
+      {
+        title: 'Cotswolds Escape — 3 Villages',
+        from: 'From London',
+        duration: '1 day',
+        price: '48',
+        image: 'https://www.sunrisetours.co.uk/images/hero.webp',
+        description: 'Bibury, Bourton-on-the-Water and Stow-on-the-Wold in one relaxed day trip through the English countryside.',
+        url: 'https://www.sunrisetours.co.uk/trips/cotswolds-escape-3-villages-day-trip-from-london'
+      },
+      {
+        title: 'Paris, France — 2 Days',
+        from: 'From London',
+        duration: '2 days',
+        price: '169',
+        image: 'https://www.sunrisetours.co.uk/images/hero.webp',
+        description: 'A 2-day, 1-night guided adventure with sightseeing, hotel stay, breakfast, ferry meals and a River Seine boat cruise.',
+        url: 'https://www.sunrisetours.co.uk/trips/paris-france'
+      }
+    ]
   };
 
-  /* ═══ LAUNCHER TOGGLE ═══ */
-  const chatButton = document.getElementById('chatButton');
-  const chatContainer = document.getElementById('chatContainer');
-  const closeBtn = document.getElementById('closeBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const notificationBadge = document.getElementById('notificationBadge');
+  document.documentElement.style.setProperty('--c1', CONFIG.primaryColor);
+  document.documentElement.style.setProperty('--c2', CONFIG.secondaryColor);
+  document.documentElement.style.setProperty('--accent', CONFIG.accentColor);
+  document.documentElement.style.setProperty('--accent2', CONFIG.accent2Color);
 
-  function isMobile() { return window.innerWidth <= 768; }
-
-  let savedScrollY = 0;
-
-  function lockBodyScroll() {
-    savedScrollY = window.scrollY || window.pageYOffset || 0;
-    document.documentElement.classList.add('chat-open');
-    document.body.classList.add('chat-open');
-    document.body.style.top = `-${savedScrollY}px`;
-  }
-
-  function unlockBodyScroll() {
-    document.documentElement.classList.remove('chat-open');
-    document.body.classList.remove('chat-open');
-    document.body.style.top = '';
-    window.scrollTo(0, savedScrollY);
-  }
-
-  function openChat() {
-    chatContainer.classList.add('active');
-    notificationBadge.style.display = 'none';
-    if (isMobile()) lockBodyScroll();
-    setTimeout(() => document.getElementById('inp').focus(), 300);
-  }
-  function closeChat() {
-    chatContainer.classList.remove('active');
-    if (isMobile()) unlockBodyScroll();
-  }
-
-  chatButton.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (!chatContainer.classList.contains('active')) openChat();
-  });
-  closeBtn.addEventListener('click', (e) => { e.preventDefault(); closeChat(); });
-  resetBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (confirm('Reset this chat? This clears the current conversation.')) {
-      resetBotYamaChat();
-    }
-  });
-
-  window.openChat = openChat;
-  window.closeChat = closeChat;
-
-  window.addEventListener('resize', () => {
-    if (!isMobile() && document.body.classList.contains('chat-open')) {
-      unlockBodyScroll();
-    }
-  });
-
-  chatContainer.addEventListener('touchmove', function (e) {
-    const scrollable = e.target.closest('.msgs, .prop-scroll, .subhdr, .ck-textarea');
-    if (!scrollable) e.preventDefault();
-  }, { passive: false });
-
-  /* ═══ SESSION + PERSISTENCE ═══ */
-  const SESSION_KEY = 'botyama_session_id';
-  const HISTORY_KEY = 'botyama_chat_history';
-  const BUSINESS_KEY = 'botyama_business_name';
-
-  function getOrCreateSessionId() {
-    let id = sessionStorage.getItem(SESSION_KEY);
-    if (!id) {
-      id = 'lease_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now();
-      sessionStorage.setItem(SESSION_KEY, id);
-    }
-    return id;
-  }
-
-  let SESSION_ID = getOrCreateSessionId();
+  const SESSION_ID = 'trip_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now();
   let isBusy = false;
   let lastUserMessage = '';
-  let businessCaptured = false;
-  let businessName = sessionStorage.getItem(BUSINESS_KEY) || '';
-  let historyLog = [];
 
-  function saveHistory() {
-    try { sessionStorage.setItem(HISTORY_KEY, JSON.stringify(historyLog)); } catch (e) {}
-  }
-  function loadHistory() {
-    try {
-      const raw = sessionStorage.getItem(HISTORY_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) { return []; }
-  }
-  function pushHistory(entry) {
-    historyLog.push(entry);
-    saveHistory();
-  }
-
-  /* ═══ MARKDOWN PARSER ═══ */
+  /* ═══════════════════════════════════
+     MARKDOWN PARSER
+  ═══════════════════════════════════ */
   function parseMarkdown(raw) {
     let h = raw;
     h = h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -600,11 +538,10 @@ button[onclick*="resetBotYamaChat"]:active {
     return h;
   }
 
-  /* ═══ UTILITIES ═══ */
-  function scrollB() {
-    const el = document.getElementById('msgs');
-    setTimeout(()=>{ el.scrollTop = el.scrollHeight; }, 40);
-  }
+  /* ═══════════════════════════════════
+     UTILITIES
+  ═══════════════════════════════════ */
+  function scrollB() { const el = document.getElementById('msgs'); setTimeout(()=>{ el.scrollTop = el.scrollHeight; }, 40); }
   function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function getTime() { return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
   function setBusy(state) {
@@ -620,10 +557,8 @@ button[onclick*="resetBotYamaChat"]:active {
       <div class="agent-row">
         <div class="agent-row-av">
           <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="4" y="8" width="16" height="11" rx="3"/>
-            <path d="M9 8V6a3 3 0 0 1 6 0v2"/>
-            <circle cx="9" cy="13.5" r="1.1" fill="#fff" stroke="none"/>
-            <circle cx="15" cy="13.5" r="1.1" fill="#fff" stroke="none"/>
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 3v2M12 19v2M4.5 4.5l1.4 1.4M18.1 18.1l1.4 1.4M3 12h2M19 12h2M4.5 19.5l1.4-1.4M18.1 5.9l1.4-1.4"/>
           </svg>
         </div>
         <span class="agent-row-name">${escHtml(CONFIG.agentTag)}</span>
@@ -635,33 +570,16 @@ button[onclick*="resetBotYamaChat"]:active {
       </div>`;
   }
 
-  /* ═══ OPENING ═══ */
-  function renderOpeningBubbleOnly() {
-    const m = document.getElementById('msgs');
-    const grp = document.createElement('div');
-    grp.className = 'msg-group';
-    grp.id = 'opening-group';
-    grp.innerHTML = `
-      ${agentRowHTML()}
-      <div class="msg">
-        <div class="bub b">
-          <p>Welcome to the <b>${escHtml(businessName || CONFIG.companyName)} Demo!</b> </br>
-See how we respond to leads, qualify prospects, and book tours — automatically.</p>
-<p><b>Please share your name and email to continue — I'll personalize the demo for you.</b></p>
-        </div>
-      </div>
-    `;
-    m.appendChild(grp);
-    scrollB();
-  }
-
+  /* ═══════════════════════════════════
+     RENDER OPENING
+  ═══════════════════════════════════ */
   function renderOpening() {
-    document.getElementById('hdr-company-name').textContent = businessName || CONFIG.companyName;
-    document.getElementById('hdr-agent-tag').textContent = businessName ? 'AI Leasing Assistant (Demo)' : CONFIG.agentTag;
+    document.getElementById('hdr-company-name').textContent = CONFIG.companyName;
+    document.getElementById('hdr-agent-tag').textContent = CONFIG.agentTag;
     document.getElementById('inp-footer-text').textContent = CONFIG.footerText;
 
     const tb = document.getElementById('trust-bar');
-    tb.innerHTML = CONFIG.trustBadges.map(b => `<div class="sub-item">${escHtml(b)}</div>`).join('');
+    tb.innerHTML = CONFIG.trustBadges.map((b,i) => `<div class="sub-item${i===0?' star':''}">${escHtml(b)}</div>`).join('');
 
     const m = document.getElementById('msgs');
 
@@ -670,10 +588,37 @@ See how we respond to leads, qualify prospects, and book tours — automatically
     dp.textContent = new Date().toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'});
     m.appendChild(dp);
 
-    renderOpeningBubbleOnly();
+    const grp = document.createElement('div');
+    grp.className = 'msg-group';
+    grp.id = 'opening-group';
+    grp.innerHTML = `
+      ${agentRowHTML()}
+      <div class="msg">
+        <div class="bub b">
+          <p>Welcome aboard! ☀️ I'm your Sunrise Tours assistant. I can help you find a trip, check pickup points, or get you booked in.</p>
+        </div>
+      </div>
+    `;
+    m.appendChild(grp);
+
+    const optsDiv = document.createElement('div');
+    optsDiv.className = 'options-wrap';
+    optsDiv.id = 'starter-options';
+    CONFIG.starterOptions.forEach(label => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-pill';
+      btn.textContent = label;
+      btn.onclick = () => { removeOptions('starter-options'); sendMessage(label); };
+      optsDiv.appendChild(btn);
+    });
+    m.appendChild(optsDiv);
+    scrollB();
   }
 
-  function appendUser(txt, record = true) {
+  /* ═══════════════════════════════════
+     APPEND USER MESSAGE
+  ═══════════════════════════════════ */
+  function appendUser(txt) {
     const m = document.getElementById('msgs');
     const grp = document.createElement('div');
     grp.className = 'msg-group';
@@ -687,7 +632,6 @@ See how we respond to leads, qualify prospects, and book tours — automatically
       </div>`;
     m.appendChild(grp);
     scrollB();
-    if (record) pushHistory({ type: 'user', text: txt });
   }
 
   function appendTyping() {
@@ -695,24 +639,19 @@ See how we respond to leads, qualify prospects, and book tours — automatically
     const id = 'ty' + Date.now();
     const grp = document.createElement('div');
     grp.id = id; grp.className = 'msg-group';
-    grp.innerHTML = `
-      ${agentRowHTML()}
-      <div class="msg"><div class="tdots"><div class="d"></div><div class="d"></div><div class="d"></div></div></div>`;
+    grp.innerHTML = `${agentRowHTML()}<div class="msg"><div class="tdots"><div class="d"></div><div class="d"></div><div class="d"></div></div></div>`;
     m.appendChild(grp);
     scrollB();
     return id;
   }
 
-  function appendBot(rawContent, options, record = true) {
+  /* Suggestion pills come from the AI (data.buttons) — no hardcoded fallback. */
+  function appendBot(rawContent, options) {
     const m = document.getElementById('msgs');
     const optId = 'opts_' + Date.now();
     const grp = document.createElement('div');
     grp.className = 'msg-group';
-    grp.innerHTML = `
-      ${agentRowHTML()}
-      <div class="msg">
-        <div class="bub b">${parseMarkdown(rawContent)}</div>
-      </div>`;
+    grp.innerHTML = `${agentRowHTML()}<div class="msg"><div class="bub b">${parseMarkdown(rawContent)}</div></div>`;
     m.appendChild(grp);
 
     if (Array.isArray(options) && options.length > 0) {
@@ -729,7 +668,6 @@ See how we respond to leads, qualify prospects, and book tours — automatically
       m.appendChild(optsDiv);
     }
     scrollB();
-    if (record) pushHistory({ type: 'bot', content: rawContent, options: options || null });
   }
 
   function appendError() {
@@ -754,202 +692,147 @@ See how we respond to leads, qualify prospects, and book tours — automatically
     sendMessage(lastUserMessage);
   }
 
-  /* ═══ PROPERTY RESULTS ═══ */
-  let propertyRegistry = {};
+  /* ═══════════════════════════════════
+     TOUR CARDS
+     Card anatomy: photo + duration badge + "from city" badge,
+     title, price, two actions — Details (opens popup, sends
+     nothing) and Book Now (sends a booking prompt to the chat).
 
-  function parsePropertiesFromReply(raw) {
-    if (!raw) return null;
-    const titleRe = /\d+\.\s*\*\*([^*]+?)\*\*/g;
-    const titles = [];
-    let m;
-    while ((m = titleRe.exec(raw)) !== null) {
-      titles.push({ start: m.index, end: titleRe.lastIndex, title: m[1].trim() });
-    }
-    if (titles.length === 0) return null;
+     Triggered by data.tours from the webhook (same shape as
+     CONFIG.demoTours), or falls back to the demo catalogue so
+     the widget is fully clickable out of the box.
+  ═══════════════════════════════════ */
+  let tourRegistry = {};
 
-    const intro = raw.slice(0, titles[0].start).trim();
-    const fieldRe = /\*\*([^*:]+):\*\*\s*([^*]+)/g;
-    const properties = [];
-
-    for (let i = 0; i < titles.length; i++) {
-      const blockStart = titles[i].end;
-      const blockEnd = i + 1 < titles.length ? titles[i + 1].start : raw.length;
-      const rawBlock = raw.slice(blockStart, blockEnd).split(/\n\s*\n/)[0];
-
-      const keptLines = [];
-      for (const line of rawBlock.split('\n')) {
-        if (line.trim() === '' || line.includes('**')) {
-          keptLines.push(line);
-        } else {
-          break;
-        }
-      }
-      const block = keptLines.join('\n');
-
-      const fields = {};
-      let fm;
-      fieldRe.lastIndex = 0;
-      while ((fm = fieldRe.exec(block)) !== null) {
-        const label = fm[1].trim().toLowerCase();
-        const value = fm[2].replace(/\s+/g, ' ').trim().replace(/^-+\s*/, '').replace(/[\s-]+$/, '');
-        if (value) fields[label] = value;
-      }
-
-      const priceRaw = fields['price'] || fields['rent'] || fields['monthly rent'] || '';
-      const priceNum = priceRaw.replace(/[^0-9.]/g, '');
-      const avail = fields['availability date'] || fields['available'] || fields['move-in date'] || '';
-      const imageMatch = rawBlock.match(/\[IMAGE_START\](.*?)\[IMAGE_END\]/);
-      const image = imageMatch ? imageMatch[1].trim() : null;
-
-      properties.push({
-        address: titles[i].title,
-        price: priceNum || priceRaw || null,
-        priceSuffix: priceNum ? '/mo' : '',
-        beds: fields['bedrooms'] || fields['beds'] || null,
-        baths: fields['bathrooms'] || fields['baths'] || null,
-        sqft: fields['sqft'] || fields['square feet'] || null,
-        badge: avail ? ('Available ' + avail) : '',
-        pets: fields['pet policy'] || fields['pets'] || '',
-        image: image
-      });
-    }
-    return { intro, properties };
-  }
-
-  function appendPropertyCards(properties, record = true) {
-    if (!Array.isArray(properties) || properties.length === 0) return;
+  function appendTourCards(tours) {
+    if (!Array.isArray(tours) || tours.length === 0) return;
     const m = document.getElementById('msgs');
     const grp = document.createElement('div');
     grp.className = 'msg-group';
 
-    const cardsHtml = properties.map((p, i) => {
-      const key = 'p_' + Date.now() + '_' + i;
-      propertyRegistry[key] = p;
+    const cardsHtml = tours.map((t, i) => {
+      const key = 't_' + Date.now() + '_' + i;
+      tourRegistry[key] = t;
 
-      const img = p.image
-        ? `<img src="${escHtml(p.image)}" alt="${escHtml(p.address || 'Property photo')}" onerror="this.closest('.prop-img-wrap').innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;color:#A9A5BC;font-size:11px;\\'>No photo available</div>'"/>`
-        : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#A9A5BC;font-size:11px;">No photo available</div>`;
+      const img = t.image
+        ? `<img src="${escHtml(t.image)}" alt="${escHtml(t.title || 'Tour photo')}" onerror="this.closest('.tour-img-wrap').innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;color:#ABA79A;font-size:11px;\\'>No photo available</div>'"/>`
+        : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ABA79A;font-size:11px;">No photo available</div>`;
 
-      const price = p.price ? `${CONFIG.currency}${p.price}` : 'Contact for price';
-      const priceSuffix = p.priceSuffix || (p.price ? '/mo' : '');
-      const metaParts = [];
-      if (p.beds != null) metaParts.push(`${escHtml(p.beds)} bed`);
-      if (p.baths != null) metaParts.push(`${escHtml(p.baths)} bath`);
-      if (p.sqft != null) metaParts.push(`${escHtml(p.sqft)} sqft`);
+      const price = t.price ? `${CONFIG.currency}${t.price}` : 'Enquire';
+      const priceSuffix = t.price ? 'pp' : '';
 
       return `
-        <div class="prop-card">
-          <div class="prop-img-wrap">
+        <div class="tour-card">
+          <div class="tour-img-wrap">
             ${img}
-            ${p.badge ? `<div class="prop-badge">${escHtml(p.badge)}</div>` : ''}
+            ${t.duration ? `<div class="tour-badge">${escHtml(t.duration)}</div>` : ''}
+            ${t.from ? `<div class="tour-from-badge">${escHtml(t.from)}</div>` : ''}
           </div>
-          <div class="prop-body">
-            ${p.address ? `<div class="prop-title">${escHtml(p.address)}</div>` : ''}
-            <div class="prop-price">${escHtml(price)}${priceSuffix ? `<span> ${escHtml(priceSuffix)}</span>` : ''}</div>
-            ${metaParts.length ? `<div class="prop-meta">${metaParts.join(' &middot; ')}</div>` : ''}
-            ${p.pets ? `<div class="prop-pets">${escHtml(p.pets)}</div>` : ''}
-            <div class="prop-actions">
-              <button class="prop-btn view" onclick="showPropertyDetails('${key}')">View</button>
-              <button class="prop-btn book" onclick="sendMessage('Book a tour for ' + '${escHtml(p.address || 'this property')}')">Book tour</button>
+          <div class="tour-body">
+            ${t.title ? `<div class="tour-title">${escHtml(t.title)}</div>` : ''}
+            <div class="tour-price">${escHtml(price)}${priceSuffix ? `<span> ${escHtml(priceSuffix)}</span>` : ''}</div>
+            <div class="tour-actions">
+              <button class="tour-btn details" onclick="showTourDetails('${key}')">Details</button>
+              <button class="tour-btn book" onclick="sendMessage('I want to book: ' + '${escHtml(t.title || 'this trip')}')">Book Now</button>
             </div>
           </div>
         </div>`;
     }).join('');
 
-    grp.innerHTML = `${agentRowHTML()}<div class="prop-scroll">${cardsHtml}</div>`;
+    grp.innerHTML = `${agentRowHTML()}<div class="tour-scroll">${cardsHtml}</div>`;
     m.appendChild(grp);
     scrollB();
-    if (record) pushHistory({ type: 'properties', properties });
   }
 
-  function showPropertyDetails(key) {
-    const p = propertyRegistry[key];
-    if (!p) return;
-    document.getElementById('prop-modal-overlay')?.remove();
+  /* Details button — popup with a bit more info + its own Book Now,
+     which also sends a prompt into the chat. */
+  function showTourDetails(key) {
+    const t = tourRegistry[key];
+    if (!t) return;
+    document.getElementById('tour-modal-overlay')?.remove();
 
-    const container = document.getElementById('chatContainer');
+    const shell = document.getElementById('shell');
     const overlay = document.createElement('div');
-    overlay.id = 'prop-modal-overlay';
-    overlay.className = 'prop-modal-overlay';
-    overlay.onclick = (e) => { if (e.target === overlay) closePropertyDetails(); };
+    overlay.id = 'tour-modal-overlay';
+    overlay.className = 'tour-modal-overlay';
+    overlay.onclick = (e) => { if (e.target === overlay) closeTourDetails(); };
 
-    const price = p.price ? `${CONFIG.currency}${p.price}` : 'Contact for price';
-    const priceSuffix = p.priceSuffix || (p.price ? '/mo' : '');
-    const img = p.image
-      ? `<img class="prop-modal-img" src="${escHtml(p.image)}" alt="${escHtml(p.address || 'Property photo')}" onerror="this.style.display='none'"/>`
-      : `<div class="prop-modal-img" style="display:flex;align-items:center;justify-content:center;color:#A9A5BC;font-size:12px;">No photo available</div>`;
-
-    const metaParts = [];
-    if (p.beds != null) metaParts.push(`${escHtml(p.beds)} bed`);
-    if (p.baths != null) metaParts.push(`${escHtml(p.baths)} bath`);
-    if (p.sqft != null) metaParts.push(`${escHtml(p.sqft)} sqft`);
+    const price = t.price ? `${CONFIG.currency}${t.price}` : 'Enquire for price';
+    const priceSuffix = t.price ? 'pp' : '';
+    const img = t.image
+      ? `<img class="tour-modal-img" src="${escHtml(t.image)}" alt="${escHtml(t.title || 'Tour photo')}" onerror="this.style.display='none'"/>`
+      : `<div class="tour-modal-img" style="display:flex;align-items:center;justify-content:center;color:#ABA79A;font-size:12px;">No photo available</div>`;
 
     overlay.innerHTML = `
-      <div class="prop-modal">
-        <div class="prop-modal-img-wrap">
+      <div class="tour-modal">
+        <div class="tour-modal-img-wrap">
           ${img}
-          <button class="prop-modal-close" onclick="closePropertyDetails()" aria-label="Close">✕</button>
+          <button class="tour-modal-close" onclick="closeTourDetails()" aria-label="Close">✕</button>
         </div>
-        <div class="prop-modal-body">
-          ${p.address ? `<div class="prop-modal-title">${escHtml(p.address)}</div>` : ''}
-          ${p.badge ? `<div class="prop-modal-address">${escHtml(p.badge)}</div>` : ''}
-          <div class="prop-modal-price">${escHtml(price)}${priceSuffix ? `<span> ${escHtml(priceSuffix)}</span>` : ''}</div>
-          ${metaParts.length ? `<div class="prop-modal-meta">${metaParts.map(x=>`<span>${x}</span>`).join('')}</div>` : ''}
-          ${p.pets ? `<div class="prop-modal-pets"><strong>Pets:</strong> ${escHtml(p.pets)}</div>` : ''}
+        <div class="tour-modal-body">
+          ${t.title ? `<div class="tour-modal-title">${escHtml(t.title)}</div>` : ''}
+          ${t.description ? `<div class="tour-modal-desc">${escHtml(t.description)}</div>` : ''}
+          <div class="tour-modal-price">${escHtml(price)}${priceSuffix ? `<span> ${escHtml(priceSuffix)}</span>` : ''}</div>
+          <div class="tour-modal-meta">
+            ${t.duration ? `<span>${escHtml(t.duration)}</span>` : ''}
+            ${t.from ? `<span>${escHtml(t.from)}</span>` : ''}
+          </div>
+          <button class="tour-modal-book" onclick="closeTourDetails(); sendMessage('I want to book: ' + '${escHtml(t.title || 'this trip')}')">Book Now</button>
         </div>
       </div>`;
 
-    container.appendChild(overlay);
+    shell.appendChild(overlay);
   }
 
-  function closePropertyDetails() { document.getElementById('prop-modal-overlay')?.remove(); }
+  function closeTourDetails() { document.getElementById('tour-modal-overlay')?.remove(); }
 
-  /* ═══ PAYMENT CARD ═══ */
-  let selectedAmount = CONFIG.applicationFee;
-  let selectedPlan = 'Application Fee';
-
-  function appendPaymentCard() {
-    document.getElementById('payment-card')?.remove();
+  /* ═══════════════════════════════════
+     BOOKING CARD — collects traveller details
+     and sends a booking request through the webhook.
+  ═══════════════════════════════════ */
+  function appendBookingCard(tripName) {
+    document.getElementById('booking-card')?.remove();
     const m = document.getElementById('msgs');
+
     const grp = document.createElement('div');
-    grp.id = 'payment-card'; grp.className = 'msg-group';
+    grp.id = 'booking-card'; grp.className = 'msg-group';
     grp.innerHTML = `
       ${agentRowHTML()}
       <div class="card-wrap">
         <div class="card">
           <div class="card-hdr">
-            <div class="card-hdr-title">Request a Payment Link</div>
-            <div class="card-hdr-sub">We'll email you a secure link to pay</div>
-          </div>
-          <div class="ck-plans">
-            <div class="ck-plan selected" id="plan-appfee" onclick="selectPlan('appfee')">
-              <div class="ck-plan-name">Application Fee</div>
-              <div class="ck-plan-price">${CONFIG.currency}${CONFIG.applicationFee}</div>
-              <div class="ck-plan-note">One-time, non-refundable</div>
-            </div>
-            <div class="ck-plan" id="plan-rent" onclick="selectPlan('rent')">
-              <div class="ck-plan-name">Pay Rent</div>
-              <div class="ck-plan-price">${CONFIG.currency}—</div>
-              <div class="ck-plan-note">Enter your amount below</div>
-            </div>
+            <div class="card-hdr-title">Book Your Trip</div>
+            <div class="card-hdr-sub">${tripName ? escHtml(tripName) : "We'll confirm availability by email"}</div>
           </div>
           <div class="card-fields">
-            <input class="ck-input" type="text" id="ck-unit" placeholder="Unit / Apt Number" autocomplete="off"/>
-            <input class="ck-input" id="ck-rent-amount" type="number" min="1" step="0.01" placeholder="Rent amount (${CONFIG.currency})" style="display:none;"/>
-            <input class="ck-input" type="text" id="ck-name" placeholder="Full Name" autocomplete="name"/>
-            <input class="ck-input" type="email" id="ck-email" placeholder="Email Address" autocomplete="email"/>
-            <div id="ck-error" class="ck-error"></div>
+            <input class="ck-input" type="text" id="bk-name" placeholder="Full Name" autocomplete="name"/>
+            <input class="ck-input" type="email" id="bk-email" placeholder="Email Address" autocomplete="email"/>
+            <input class="ck-input" type="tel" id="bk-phone" placeholder="Phone Number" autocomplete="tel"/>
+            <select class="ck-select" id="bk-travellers">
+              <option value="" disabled selected>Number of Travellers</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5+</option>
+            </select>
+            <select class="ck-select" id="bk-pickup">
+              <option value="" disabled selected>Pickup Point</option>
+              <option>Ilford, London</option>
+              <option>Elephant & Castle, London</option>
+              <option>Notting Hill Gate, London</option>
+              <option>Southall, London</option>
+              <option>Small Heath, Birmingham</option>
+              <option>Fallowfield, Manchester</option>
+            </select>
+            <div id="bk-error" class="ck-error"></div>
           </div>
           <div class="ck-divider"></div>
-          <div style="padding:0 14px;">
-            <button class="ck-pay-btn" id="ck-pay-btn" onclick="handlePayment()">
+          <div style="padding:14px 14px 0;">
+            <button class="ck-submit-btn" id="bk-submit-btn" onclick="handleBookingSubmit('${escHtml(tripName || '')}')">
               <div class="spinner"></div>
-              <span class="btn-label">Send Payment Link</span>
+              <span class="btn-label">Confirm Booking Request</span>
             </button>
           </div>
           <div class="ck-footer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Your details are sent securely to our leasing office
+            Your details are sent securely to our booking team
           </div>
         </div>
       </div>`;
@@ -957,69 +840,56 @@ See how we respond to leads, qualify prospects, and book tours — automatically
     scrollB();
   }
 
-  function selectPlan(plan) {
-    document.querySelectorAll('.ck-plan').forEach(p => p.classList.remove('selected'));
-    const rentInput = document.getElementById('ck-rent-amount');
-    const btn = document.getElementById('ck-pay-btn');
-    if (plan === 'appfee') {
-      selectedPlan = 'Application Fee'; selectedAmount = CONFIG.applicationFee;
-      document.getElementById('plan-appfee').classList.add('selected');
-      rentInput.style.display = 'none';
-      btn.querySelector('.btn-label').textContent = `Send Payment Link`;
-    } else {
-      selectedPlan = 'Rent Payment';
-      document.getElementById('plan-rent').classList.add('selected');
-      rentInput.style.display = 'block';
-      selectedAmount = parseFloat(rentInput.value) || 0;
-      btn.querySelector('.btn-label').textContent = `Send Payment Link`;
-      rentInput.oninput = () => { selectedAmount = parseFloat(rentInput.value) || 0; };
-    }
-  }
+  async function handleBookingSubmit(tripName) {
+    const name = document.getElementById('bk-name')?.value.trim();
+    const email = document.getElementById('bk-email')?.value.trim();
+    const phone = document.getElementById('bk-phone')?.value.trim();
+    const travellers = document.getElementById('bk-travellers')?.value;
+    const pickup = document.getElementById('bk-pickup')?.value;
+    const errEl = document.getElementById('bk-error');
 
-  async function handlePayment() {
-    const unit = document.getElementById('ck-unit')?.value.trim();
-    const name = document.getElementById('ck-name')?.value.trim();
-    const email = document.getElementById('ck-email')?.value.trim();
-    const errEl = document.getElementById('ck-error');
-    if (!unit) { errEl.textContent = 'Please enter your unit / apartment number.'; return; }
     if (!name) { errEl.textContent = 'Please enter your full name.'; return; }
     if (!email || !email.includes('@')) { errEl.textContent = 'Please enter a valid email address.'; return; }
-    if (selectedPlan === 'Rent Payment' && (!selectedAmount || selectedAmount <= 0)) {
-      errEl.textContent = 'Please enter a valid rent amount.'; return;
-    }
+    if (!phone) { errEl.textContent = 'Please enter a contact phone number.'; return; }
+    if (!travellers) { errEl.textContent = 'Please select the number of travellers.'; return; }
+    if (!pickup) { errEl.textContent = 'Please select a pickup point.'; return; }
     errEl.textContent = '';
-    const btn = document.getElementById('ck-pay-btn');
+
+    const btn = document.getElementById('bk-submit-btn');
     btn.disabled = true; btn.classList.add('loading');
+
     try {
       const res = await fetch(CONFIG.webhookUrl, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'request_payment_link', amount: selectedAmount, plan: selectedPlan, unit, name, email, sessionId: SESSION_ID })
+        body: JSON.stringify({
+          action: 'submit_booking', trip: tripName, name, email, phone,
+          travellers, pickup, sessionId: SESSION_ID
+        })
       });
-      if (!res.ok) throw new Error('Could not send your request. Please try again.');
+      if (!res.ok) throw new Error('Could not send your booking request. Please try again.');
       const data = await res.json().catch(() => ({}));
-      document.getElementById('payment-card')?.remove();
-      appendPaymentSuccess(name, email, selectedAmount, selectedPlan, data.reference);
+      document.getElementById('booking-card')?.remove();
+      appendBookingSuccess(name, email, tripName, data.reference);
     } catch (err) {
       errEl.textContent = err.message || 'Something went wrong. Please try again.';
       btn.disabled = false; btn.classList.remove('loading');
     }
   }
 
-  function appendPaymentSuccess(name, email, amount, plan, reference) {
+  function appendBookingSuccess(name, email, tripName, reference) {
     const m = document.getElementById('msgs');
     const firstName = name.split(' ')[0];
     const refShort = reference ? String(reference).slice(-8).toUpperCase() : Math.random().toString(36).slice(2, 8).toUpperCase();
-    const amountTxt = amount ? `${CONFIG.currency}${(+amount).toFixed(2)}` : '';
     const grp = document.createElement('div');
     grp.className = 'msg-group';
     grp.innerHTML = `
       ${agentRowHTML()}
       <div class="msg">
         <div class="success-bub">
-          <div class="success-title">Request Received, ${escHtml(firstName)}</div>
+          <div class="success-title">Booking Request Sent, ${escHtml(firstName)}!</div>
           <div class="success-msg">
-            We're preparing a secure payment link for your ${escHtml(plan)}${amountTxt ? ` of <strong>${amountTxt}</strong>` : ''}.
-            It will be sent to <strong>${escHtml(email)}</strong> shortly.
+            We've received your request${tripName ? ` for <strong>${escHtml(tripName)}</strong>` : ''}.
+            Our team will confirm availability and send payment details to <strong>${escHtml(email)}</strong> shortly.
           </div>
           <div class="success-ref">Ref: #${refShort}</div>
         </div>
@@ -1028,117 +898,9 @@ See how we respond to leads, qualify prospects, and book tours — automatically
     scrollB();
   }
 
-  /* ═══ MAINTENANCE REQUEST CARD ═══ */
-  let selectedUrgency = 'Routine';
-
-  function appendMaintenanceCard() {
-    document.getElementById('maintenance-card')?.remove();
-    const m = document.getElementById('msgs');
-    selectedUrgency = 'Routine';
-
-    const catOptions = CONFIG.maintenanceCategories.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
-
-    const grp = document.createElement('div');
-    grp.id = 'maintenance-card'; grp.className = 'msg-group';
-    grp.innerHTML = `
-      ${agentRowHTML()}
-      <div class="card-wrap">
-        <div class="card">
-          <div class="card-hdr">
-            <div class="card-hdr-title">Maintenance Request</div>
-            <div class="card-hdr-sub">We'll route this to your property team</div>
-          </div>
-          <div class="card-fields" style="padding-top:14px;">
-            <input class="ck-input" type="text" id="mr-name" placeholder="Full Name" autocomplete="name"/>
-            <input class="ck-input" type="text" id="mr-unit" placeholder="Unit / Apt Number" autocomplete="off"/>
-            <select class="ck-select" id="mr-category">
-              <option value="" disabled selected>Issue Category</option>
-              ${catOptions}
-            </select>
-            <div class="field-label">Urgency</div>
-            <div class="urg-row">
-              <div class="urg-tile selected" id="urg-routine" onclick="selectUrgency('Routine')">Routine</div>
-              <div class="urg-tile" id="urg-urgent" onclick="selectUrgency('Urgent')">Urgent</div>
-              <div class="urg-tile" id="urg-emergency" onclick="selectUrgency('Emergency')">Emergency</div>
-            </div>
-            <textarea class="ck-textarea" id="mr-desc" placeholder="Briefly describe the issue…"></textarea>
-            <div id="mr-error" class="ck-error"></div>
-          </div>
-          <div class="ck-divider"></div>
-          <div style="padding:0 14px 14px;">
-            <button class="ck-pay-btn" id="mr-submit-btn" onclick="handleMaintenanceSubmit()">
-              <div class="spinner"></div>
-              <span class="btn-label">Submit Request</span>
-            </button>
-          </div>
-        </div>
-      </div>`;
-    m.appendChild(grp);
-    scrollB();
-  }
-
-  function selectUrgency(level) {
-    selectedUrgency = level;
-    document.querySelectorAll('.urg-tile').forEach(t => t.classList.remove('selected', 'emergency'));
-    if (level === 'Routine') document.getElementById('urg-routine').classList.add('selected');
-    if (level === 'Urgent') document.getElementById('urg-urgent').classList.add('selected');
-    if (level === 'Emergency') document.getElementById('urg-emergency').classList.add('selected', 'emergency');
-  }
-
-  async function handleMaintenanceSubmit() {
-    const name = document.getElementById('mr-name')?.value.trim();
-    const unit = document.getElementById('mr-unit')?.value.trim();
-    const category = document.getElementById('mr-category')?.value;
-    const desc = document.getElementById('mr-desc')?.value.trim();
-    const errEl = document.getElementById('mr-error');
-
-    if (!name) { errEl.textContent = 'Please enter your full name.'; return; }
-    if (!unit) { errEl.textContent = 'Please enter your unit / apartment number.'; return; }
-    if (!category) { errEl.textContent = 'Please select an issue category.'; return; }
-    if (!desc) { errEl.textContent = 'Please briefly describe the issue.'; return; }
-    errEl.textContent = '';
-
-    const btn = document.getElementById('mr-submit-btn');
-    btn.disabled = true; btn.classList.add('loading');
-
-    try {
-      const res = await fetch(CONFIG.webhookUrl, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'submit_maintenance_request', name, unit, category, urgency: selectedUrgency, description: desc, sessionId: SESSION_ID })
-      });
-      if (!res.ok) throw new Error('Could not submit your request. Please try again.');
-      const data = await res.json().catch(() => ({}));
-      document.getElementById('maintenance-card')?.remove();
-      appendMaintenanceSuccess(name, category, selectedUrgency, data.ticketId);
-    } catch (err) {
-      errEl.textContent = err.message || 'Something went wrong. Please try again.';
-      btn.disabled = false; btn.classList.remove('loading');
-    }
-  }
-
-  function appendMaintenanceSuccess(name, category, urgency, ticketId) {
-    const m = document.getElementById('msgs');
-    const firstName = name.split(' ')[0];
-    const ref = ticketId ? String(ticketId).slice(-8).toUpperCase() : Math.random().toString(36).slice(2, 8).toUpperCase();
-    const grp = document.createElement('div');
-    grp.className = 'msg-group';
-    grp.innerHTML = `
-      ${agentRowHTML()}
-      <div class="msg">
-        <div class="success-bub">
-          <div class="success-title">Request Submitted, ${escHtml(firstName)}</div>
-          <div class="success-msg">
-            Your <strong>${escHtml(category)}</strong> request (${escHtml(urgency)}) has been sent to the maintenance team.
-            ${urgency === 'Emergency' ? "For safety-related emergencies, please also call your property's emergency line directly." : "You'll receive updates by email."}
-          </div>
-          <div class="success-ref">Ticket #${ref}</div>
-        </div>
-      </div>`;
-    m.appendChild(grp);
-    scrollB();
-  }
-
-  /* ═══ SEND LOGIC ═══ */
+  /* ═══════════════════════════════════
+     SEND LOGIC
+  ═══════════════════════════════════ */
   function onKey(e) { if (e.key === 'Enter' && !isBusy) send(); }
 
   function send() {
@@ -1161,51 +923,35 @@ See how we respond to leads, qualify prospects, and book tours — automatically
       const res = await fetch(CONFIG.webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: txt, source: 'leasing_chatbot', sessionId: SESSION_ID, action: 'chat', businessName })
+        body: JSON.stringify({ message: txt, source: 'sunrise_tours_chatbot', sessionId: SESSION_ID, action: 'chat' })
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       document.getElementById(tid)?.remove();
 
-      const returnedBusinessName = data.business_name || data.businessName
-        || (data.output && (data.output.business_name || data.output.businessName));
-      if (returnedBusinessName && returnedBusinessName !== businessName) {
-        businessName = returnedBusinessName;
-        businessCaptured = true;
-        sessionStorage.setItem(BUSINESS_KEY, businessName);
-        document.getElementById('hdr-company-name').textContent = businessName;
-        document.getElementById('hdr-agent-tag').textContent = 'AI Leasing Assistant (Demo)';
-      }
-
-      const reply = data.message || data.reply || data.text || "Thanks for reaching out — I've got your message.";
+      const reply =
+        data.message || data.reply || data.output || data.text ||
+        "Thanks for reaching out — I've got your message.";
 
       const strippedReply = reply
-        .replace(/\[show_payment\]/gi, '')
-        .replace(/\[show_maintenance\]/gi, '')
-        .replace(/\[show_properties\]/gi, '')
+        .replace(/\[show_tours\]/gi, '')
+        .replace(/\[show_booking\]/gi, '')
         .trim();
 
-      let propertiesToShow = null;
-      let cleanReply = strippedReply;
+      appendBot(strippedReply, data.buttons);
 
-      if (Array.isArray(data.properties) && data.properties.length > 0) {
-        propertiesToShow = data.properties;
-      } else {
-        const parsed = parsePropertiesFromReply(strippedReply);
-        if (parsed && parsed.properties.length > 0) {
-          propertiesToShow = parsed.properties;
-          cleanReply = parsed.intro || 'Here are some available properties:';
-        }
-      }
+      const wantsTours = data.action === 'show_tours' || /\[show_tours\]/i.test(reply);
+      const wantsBooking = data.action === 'show_booking' || /\[show_booking\]/i.test(reply) || /^i want to book:/i.test(txt);
 
-      appendBot(cleanReply, data.buttons);
+      // Prefer structured data.tours from the webhook; otherwise, if the
+      // AI's reply signalled tours should be shown, fall back to the demo
+      // catalogue so the card UI is always testable.
+      const toursToShow = Array.isArray(data.tours) && data.tours.length > 0
+        ? data.tours
+        : (wantsTours ? CONFIG.demoTours : null);
 
-      const wantsPayment = data.action === 'show_payment' || /\[show_payment\]/i.test(reply);
-      const wantsMaintenance = data.action === 'show_maintenance' || /\[show_maintenance\]/i.test(reply);
-
-      if (wantsPayment) setTimeout(() => appendPaymentCard(), 700);
-      if (wantsMaintenance) setTimeout(() => appendMaintenanceCard(), 700);
-      if (propertiesToShow) setTimeout(() => appendPropertyCards(propertiesToShow), 700);
+      if (toursToShow) setTimeout(() => appendTourCards(toursToShow), 700);
+      if (wantsBooking) setTimeout(() => appendBookingCard(txt.replace(/^i want to book:\s*/i, '')), 700);
 
     } catch (err) {
       document.getElementById(tid)?.remove();
@@ -1216,63 +962,15 @@ See how we respond to leads, qualify prospects, and book tours — automatically
     }
   }
 
-  /* ═══ RESET ═══ */
-  // Wipes the conversation back to 0: new session id, cleared history,
-  // cleared business-name personalization, fresh welcome message.
-  // Call this from your reset button: onclick="resetBotYamaChat()"
-  window.resetBotYamaChat = function () {
-    sessionStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(HISTORY_KEY);
-    sessionStorage.removeItem(BUSINESS_KEY);
-
-    SESSION_ID = getOrCreateSessionId();
-    historyLog = [];
-    businessName = '';
-    businessCaptured = false;
-    propertyRegistry = {};
-
-    document.getElementById('prop-modal-overlay')?.remove();
-    document.getElementById('payment-card')?.remove();
-    document.getElementById('maintenance-card')?.remove();
-
-    const m = document.getElementById('msgs');
-    m.innerHTML = '';
-
+  /* ═══════════════════════════════════
+     INIT
+  ═══════════════════════════════════ */
+  window.addEventListener('DOMContentLoaded', () => {
     renderOpening();
-    pushHistory({ type: 'opening' });
-  };
-
-  /* ═══ INIT ═══ */
-  function initChat() {
-    const saved = loadHistory();
-
-    if (saved.length > 0) {
-      document.getElementById('hdr-company-name').textContent = businessName || CONFIG.companyName;
-      document.getElementById('hdr-agent-tag').textContent = businessName ? 'AI Leasing Assistant (Demo)' : CONFIG.agentTag;
-      document.getElementById('inp-footer-text').textContent = CONFIG.footerText;
-
-      const tb = document.getElementById('trust-bar');
-      tb.innerHTML = CONFIG.trustBadges.map(b => `<div class="sub-item">${escHtml(b)}</div>`).join('');
-
-      const dp = document.createElement('div');
-      dp.className = 'date-pill';
-      dp.textContent = new Date().toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'});
-      document.getElementById('msgs').appendChild(dp);
-
-      historyLog = saved;
-      saved.forEach(entry => {
-        if (entry.type === 'opening') renderOpeningBubbleOnly();
-        else if (entry.type === 'user') appendUser(entry.text, false);
-        else if (entry.type === 'bot') appendBot(entry.content, entry.options, false);
-        else if (entry.type === 'properties') appendPropertyCards(entry.properties, false);
-      });
-    } else {
-      renderOpening();
-      pushHistory({ type: 'opening' });
-    }
-  }
-
-  initChat();
+    if (window.innerWidth >= 600) document.getElementById('inp').focus();
+  });
+  window.addEventListener('resize', scrollB);
+  document.body.addEventListener('touchmove', (e) => { if (!e.target.closest('.msgs')) e.preventDefault(); }, { passive: false });
 </script>
 </body>
 </html>
