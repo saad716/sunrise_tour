@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Sunrise Tours — Travel Assistant</title>
+<title>Sunrise Tours — Live Support Widget</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -22,39 +22,116 @@
     --surface: #FBFAF8;
   }
 
-  html, body {
-    height: 100%; height: 100dvh;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #E9E9EF;
-    overflow: hidden;
-  }
+  html, body { height: 100%; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
 
-  body { display: flex; flex-direction: column; }
-
-  .shell {
-    width: 100%; height: 100%; height: 100dvh;
-    display: flex; flex-direction: column;
-    overflow: hidden;
-    background: var(--surface);
+  /* ─── FAKE HOST PAGE (stands in for the real sunrisetours.co.uk site
+       this widget would be embedded on) ─── */
+  body {
+    background:
+      radial-gradient(circle at 15% 20%, rgba(73,78,108,0.06), transparent 45%),
+      radial-gradient(circle at 85% 75%, rgba(242,153,74,0.08), transparent 45%),
+      #F3F2EE;
     position: relative;
   }
-
-  @media (min-width: 600px) {
-    body { align-items: center; justify-content: center; background: #E9E9EF; }
-    .shell {
-      max-width: 420px;
-      height: 92vh; max-height: 820px; min-height: 500px;
-      border-radius: 16px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.14);
-    }
+ 
+     WIDGET — fixed to the corner of the host page,
+     exactly like a real embedded support widget.
+  ═══════════════════════════════════════════ */
+  .widget {
+    position: fixed; right: 20px; bottom: 20px;
+    z-index: 999999;
+    display: flex; flex-direction: column; align-items: flex-end;
+    gap: 12px;
   }
 
-  /* ─── HEADER ─── */
+  /* ─── CHAT PANEL (hidden until launched) ─── */
+  .shell {
+    width: 380px; height: 640px; max-height: calc(100vh - 108px);
+    display: flex; flex-direction: column; overflow: hidden;
+    background: var(--surface);
+    border-radius: 18px;
+    box-shadow: 0 20px 56px rgba(28,27,42,0.28), 0 4px 14px rgba(28,27,42,0.14);
+    position: relative;
+    transform: translateY(16px) scale(0.96);
+    opacity: 0; pointer-events: none;
+    transition: transform 0.22s cubic-bezier(.2,.9,.3,1.2), opacity 0.18s ease;
+  }
+  .widget.open .shell { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
+
+  @media (max-width: 480px) {
+    .widget { right: 0; bottom: 0; }
+    .shell {
+      width: 100vw; height: 100dvh; max-height: 100dvh; border-radius: 0;
+    }
+    .widget.open .launcher-wrap { display: none; }
+  }
+
+  /* ─── LAUNCHER (bubble + "Live Support" pill) ─── */
+  .launcher-wrap {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .widget.open .launcher-wrap { opacity: 0; pointer-events: none; transform: translateY(6px); }
+  .launcher-wrap { transition: opacity 0.16s ease, transform 0.16s ease; }
+
+  .live-pill {
+    background: #fff; border: 1px solid #ECE8DE; border-radius: 30px;
+    padding: 9px 16px 9px 12px; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 8px 24px rgba(28,27,42,0.14);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    animation: pillIn 0.4s cubic-bezier(.2,.9,.3,1.2) 0.6s both;
+  }
+  .live-pill-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #4CBB56; flex-shrink: 0;
+    box-shadow: 0 0 0 rgba(76,187,86,0.55); animation: liveDot 2s infinite;
+  }
+  .live-pill-text { display: flex; flex-direction: column; line-height: 1.25; }
+  .live-pill-title { font-size: 12.5px; font-weight: 700; color: var(--ink); }
+  .live-pill-sub { font-size: 10.5px; color: var(--muted); font-weight: 500; }
+  @keyframes pillIn { from { opacity: 0; transform: translateX(8px) scale(0.94); } to { opacity: 1; transform: translateX(0) scale(1); } }
+  @keyframes liveDot { 0% { box-shadow: 0 0 0 0 rgba(76,187,86,0.55); } 70% { box-shadow: 0 0 0 7px rgba(76,187,86,0); } 100% { box-shadow: 0 0 0 0 rgba(76,187,86,0); } }
+
+  /* Launcher bubble — same sun mark as the chat header avatar/logo,
+     with a soft "buzzing" pulse ring to draw the eye + unread badge. */
+  .launcher-btn {
+    position: relative; width: 62px; height: 62px; border-radius: 50%;
+    border: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 26px rgba(242,153,74,0.45), 0 2px 8px rgba(28,27,42,0.18);
+    animation: buzz 3.2s ease-in-out infinite;
+  }
+  .launcher-btn svg { width: 30px; height: 30px; }
+  .launcher-btn::before, .launcher-btn::after {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    border: 2px solid rgba(242,153,74,0.55);
+    animation: ripple 2.6s ease-out infinite;
+  }
+  .launcher-btn::after { animation-delay: 1.3s; }
+  @keyframes ripple {
+    0%   { transform: scale(1);   opacity: 0.65; }
+    100% { transform: scale(1.7); opacity: 0; }
+  }
+  @keyframes buzz {
+    0%, 78%, 100% { transform: rotate(0deg) scale(1); }
+    80%  { transform: rotate(-8deg) scale(1.04); }
+    83%  { transform: rotate(7deg) scale(1.04); }
+    86%  { transform: rotate(-5deg) scale(1.02); }
+    89%  { transform: rotate(4deg) scale(1.02); }
+    92%  { transform: rotate(0deg) scale(1); }
+  }
+  .launcher-badge {
+    position: absolute; top: -3px; right: -3px;
+    width: 19px; height: 19px; border-radius: 50%;
+    background: #E4453C; color: #fff; font-size: 10px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid #F3F2EE; z-index: 2;
+  }
+
+  /* ─── HEADER (inside chat panel) ─── */
   .hdr {
     background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 100%);
-    padding: 16px 18px 14px;
-    padding-top: calc(16px + env(safe-area-inset-top));
-    display: flex; align-items: center; gap: 13px;
+    padding: 16px 16px 14px;
+    display: flex; align-items: center; gap: 12px;
     flex-shrink: 0; position: relative; overflow: hidden;
   }
   .hdr::after {
@@ -63,43 +140,34 @@
     background: radial-gradient(circle, rgba(242,153,74,0.35), rgba(242,153,74,0) 70%);
   }
   .hdr-av {
-    width: 44px; height: 44px; border-radius: 50%;
+    width: 42px; height: 42px; border-radius: 50%;
     overflow: hidden; flex-shrink: 0;
     border: 2px solid rgba(242,153,74,0.6);
     background: linear-gradient(135deg, var(--accent), var(--accent2));
     display: flex; align-items: center; justify-content: center;
     z-index: 1;
   }
-  .hdr-av svg { width: 24px; height: 24px; }
+  .hdr-av svg { width: 22px; height: 22px; }
   .hdr-info { flex: 1; min-width: 0; z-index: 1; }
   .hdr-name {
-    font-size: 16px; font-weight: 800;
-    color: #fff; letter-spacing: -0.01em; line-height: 1.2;
+    font-size: 15.5px; font-weight: 800; color: #fff; letter-spacing: -0.01em; line-height: 1.2;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .hdr-agent-row { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
-  .hdr-agent-label {
-    font-size: 10px; font-weight: 700;
-    color: var(--accent2);
-    letter-spacing: 0.08em; text-transform: uppercase;
-  }
+  .hdr-agent-label { font-size: 10px; font-weight: 700; color: var(--accent2); letter-spacing: 0.07em; text-transform: uppercase; }
   .agent-badge {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.22);
-    color: #fff; font-size: 9px; font-weight: 600;
-    padding: 2px 7px; border-radius: 20px;
-    letter-spacing: 0.06em; text-transform: uppercase;
-    display: flex; align-items: center; gap: 3px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.22);
+    color: #fff; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 20px;
+    letter-spacing: 0.06em; text-transform: uppercase; display: flex; align-items: center; gap: 3px;
   }
-  .agent-badge::before {
-    content: ''; width: 6px; height: 6px; border-radius: 50%;
-    background: #7CC576; display: inline-block;
-  }
+  .agent-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #7CC576; display: inline-block; }
   .hdr-close {
-    background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.65);
-    width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px;
+    background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.7);
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 15px;
     display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1;
+    -webkit-tap-highlight-color: transparent;
   }
+  .hdr-close:hover { background: rgba(255,255,255,0.2); }
 
   /* ─── SUBHEADER TRUST BAR ─── */
   .subhdr {
@@ -109,8 +177,7 @@
   }
   .subhdr::-webkit-scrollbar { display: none; }
   .sub-item {
-    display: flex; align-items: center; gap: 4px;
-    font-size: 10.5px; color: var(--muted); font-weight: 600;
+    display: flex; align-items: center; gap: 4px; font-size: 10.5px; color: var(--muted); font-weight: 600;
     white-space: nowrap; flex-shrink: 0; padding-right: 12px;
   }
   .sub-item:not(:last-child) { border-right: 1px solid #E9E5D9; margin-right: 2px; }
@@ -118,12 +185,9 @@
 
   /* ─── MESSAGES ─── */
   .msgs {
-    flex: 1; overflow-y: auto; overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    padding: 16px 14px 8px;
-    display: flex; flex-direction: column; gap: 14px;
-    overscroll-behavior: contain;
-    background: var(--surface);
+    flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
+    padding: 16px 14px 8px; display: flex; flex-direction: column; gap: 14px;
+    overscroll-behavior: contain; background: var(--surface);
   }
   .msgs::-webkit-scrollbar { width: 4px; }
   .msgs::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
@@ -139,9 +203,8 @@
   .agent-row-av svg { width: 15px; height: 15px; }
   .agent-row-name { font-size: 11.5px; font-weight: 700; color: var(--ink); letter-spacing: 0.01em; }
   .agent-row-badge {
-    font-size: 9px; font-weight: 700; color: var(--c2);
-    background: var(--accent-tint); padding: 1px 6px; border-radius: 10px;
-    letter-spacing: 0.05em; text-transform: uppercase;
+    font-size: 9px; font-weight: 700; color: var(--c2); background: var(--accent-tint);
+    padding: 1px 6px; border-radius: 10px; letter-spacing: 0.05em; text-transform: uppercase;
     display: flex; align-items: center; gap: 3px;
   }
   .agent-row-badge svg { width: 9px; height: 9px; }
@@ -175,10 +238,7 @@
   .bub.b blockquote { border-left: 3px solid var(--accent); padding-left: 10px; margin: 6px 0; color: var(--muted); font-style: italic; }
   .bub.b hr { border: none; border-top: 1px solid #E9E5D9; margin: 8px 0; }
 
-  .options-wrap {
-    margin-top: 4px; display: flex; flex-wrap: wrap; gap: 7px;
-    animation: fadeUp 0.25s ease 0.1s both;
-  }
+  .options-wrap { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 7px; animation: fadeUp 0.25s ease 0.1s both; }
   .opt-pill {
     background: #fff; border: 1.5px solid var(--accent); color: var(--c2);
     font-size: 13px; font-weight: 500; padding: 7px 15px; border-radius: 50px;
@@ -189,10 +249,7 @@
   .opt-pill:active { transform: scale(0.97); }
   .opt-pill:disabled { opacity: 0.45; cursor: not-allowed; border-color: #D6D2C4; color: #B9B6A8; }
 
-  .tdots {
-    display: flex; gap: 4px; align-items: center; padding: 11px 16px;
-    background: #F2EFE6; border-radius: 18px; border-top-left-radius: 4px; width: fit-content;
-  }
+  .tdots { display: flex; gap: 4px; align-items: center; padding: 11px 16px; background: #F2EFE6; border-radius: 18px; border-top-left-radius: 4px; width: fit-content; }
   .d { width: 6px; height: 6px; background: var(--muted); border-radius: 50%; opacity: 0.7; animation: bop 1.2s infinite; }
   .d:nth-child(2) { animation-delay: .2s; }
   .d:nth-child(3) { animation-delay: .4s; }
@@ -206,75 +263,53 @@
   }
   .retry-btn:hover { background: #A6362C; color: #fff; }
 
-  /* ─── TOUR CARDS (image, duration/price badges, 2 actions) ─── */
-  .tour-scroll {
-    display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; margin-top: 2px;
-    -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity;
-  }
+  /* ─── TOUR CARDS ─── */
+  .tour-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; margin-top: 2px; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
   .tour-scroll::-webkit-scrollbar { height: 4px; }
   .tour-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
   .tour-card {
-    flex: 0 0 228px; scroll-snap-align: start;
-    background: #fff; border: 1px solid #ECE8DE; border-radius: 14px;
-    overflow: hidden; box-shadow: 0 2px 14px rgba(36,38,58,0.09);
-    display: flex; flex-direction: column;
+    flex: 0 0 218px; scroll-snap-align: start; background: #fff; border: 1px solid #ECE8DE; border-radius: 14px;
+    overflow: hidden; box-shadow: 0 2px 14px rgba(36,38,58,0.09); display: flex; flex-direction: column;
   }
-  .tour-img-wrap { position: relative; width: 100%; height: 130px; background: #DCDDE8; overflow: hidden; }
+  .tour-img-wrap { position: relative; width: 100%; height: 122px; background: #DCDDE8; overflow: hidden; }
   .tour-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .tour-badge {
-    position: absolute; top: 8px; left: 8px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.02em;
-    padding: 4px 9px; border-radius: 20px; font-family: 'Inter', sans-serif;
-    box-shadow: 0 2px 6px rgba(242,153,74,0.35);
+    position: absolute; top: 8px; left: 8px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.02em; padding: 4px 9px; border-radius: 20px;
+    font-family: 'Inter', sans-serif; box-shadow: 0 2px 6px rgba(242,153,74,0.35);
   }
   .tour-from-badge {
-    position: absolute; top: 8px; right: 8px;
-    background: rgba(36,38,58,0.72); color: #fff; font-size: 9.5px; font-weight: 600;
-    padding: 3px 8px; border-radius: 20px; letter-spacing: 0.02em;
+    position: absolute; top: 8px; right: 8px; background: rgba(36,38,58,0.72); color: #fff;
+    font-size: 9.5px; font-weight: 600; padding: 3px 8px; border-radius: 20px; letter-spacing: 0.02em;
   }
   .tour-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; }
   .tour-title { font-size: 13.5px; font-weight: 700; color: var(--ink); line-height: 1.3; min-height: 35px; }
-  .tour-meta {
-    display: flex; align-items: center; gap: 6px; font-size: 10.5px;
-    color: var(--muted); font-weight: 600; letter-spacing: 0.01em;
-  }
   .tour-price { font-size: 17px; font-weight: 800; color: var(--accent); line-height: 1.2; margin-top: 1px; }
   .tour-price span { font-size: 10.5px; font-weight: 500; color: var(--muted); }
   .tour-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 7px; }
-  .tour-btn {
-    width: 100%; font-size: 12.5px; font-weight: 700; padding: 8px 10px;
-    border-radius: 9px; cursor: pointer; transition: all 0.16s; font-family: 'Inter', sans-serif;
-  }
+  .tour-btn { width: 100%; font-size: 12.5px; font-weight: 700; padding: 8px 10px; border-radius: 9px; cursor: pointer; transition: all 0.16s; font-family: 'Inter', sans-serif; }
   .tour-btn.details { background: #fff; border: 1.5px solid #E3DFD1; color: var(--ink); }
   .tour-btn.details:hover { border-color: var(--c2); background: var(--accent-tint); }
-  .tour-btn.book {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border: 1.5px solid transparent; color: #fff;
-  }
+  .tour-btn.book { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: 1.5px solid transparent; color: #fff; }
   .tour-btn.book:hover { opacity: 0.9; }
 
   /* ─── TOUR DETAIL POPUP ─── */
   .tour-modal-overlay {
     position: absolute; inset: 0; background: rgba(36,38,58,0.55);
-    display: flex; align-items: center; justify-content: center;
-    padding: 24px; z-index: 40; animation: fadeUp 0.18s ease;
+    display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 40; animation: fadeUp 0.18s ease;
   }
-  .tour-modal { background: #fff; border-radius: 16px; width: 100%; max-width: 300px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
-  .tour-modal-img { width: 100%; height: 150px; background: #DCDDE8; object-fit: cover; display: block; }
+  .tour-modal { background: #fff; border-radius: 16px; width: 100%; max-width: 290px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+  .tour-modal-img { width: 100%; height: 145px; background: #DCDDE8; object-fit: cover; display: block; }
   .tour-modal-body { padding: 16px 18px 18px; }
   .tour-modal-title { font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
   .tour-modal-desc { font-size: 12px; color: var(--muted); line-height: 1.55; margin-bottom: 10px; }
   .tour-modal-price { font-size: 19px; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
   .tour-modal-price span { font-size: 11px; font-weight: 500; color: var(--muted); }
-  .tour-modal-meta {
-    display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--ink);
-    font-weight: 600; padding: 10px 0; border-top: 1px solid #EFEBE0;
-  }
+  .tour-modal-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--ink); font-weight: 600; padding: 10px 0; border-top: 1px solid #EFEBE0; }
   .tour-modal-meta span { background: var(--accent-tint); color: var(--c2); padding: 4px 9px; border-radius: 20px; }
   .tour-modal-book {
-    width: 100%; margin-top: 10px; background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #fff; border: none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700;
+    width: 100%; margin-top: 10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff;
+    border: none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700;
     font-family: 'Inter', sans-serif; cursor: pointer; transition: opacity 0.18s;
   }
   .tour-modal-book:hover { opacity: 0.9; }
@@ -308,30 +343,20 @@
     width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff;
     border: none; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 700;
     font-family: 'Inter', sans-serif; cursor: pointer; transition: opacity 0.18s, transform 0.12s;
-    display: flex; align-items: center; justify-content: center; gap: 7px;
-    -webkit-tap-highlight-color: transparent;
+    display: flex; align-items: center; justify-content: center; gap: 7px; -webkit-tap-highlight-color: transparent;
   }
   .ck-submit-btn:hover { opacity: 0.92; }
   .ck-submit-btn:active { transform: scale(0.98); }
   .ck-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-  .ck-submit-btn .spinner {
-    width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
-    border-radius: 50%; animation: spin 0.7s linear infinite; display: none;
-  }
+  .ck-submit-btn .spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
   .ck-submit-btn.loading .spinner { display: block; }
   .ck-submit-btn.loading .btn-label { opacity: 0.7; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .ck-divider { height: 1px; background: #F0ECDF; margin: 14px 14px 0; }
-  .ck-footer {
-    text-align: center; padding: 10px 14px 14px; font-size: 10px; color: var(--muted);
-    display: flex; align-items: center; justify-content: center; gap: 5px;
-  }
+  .ck-footer { text-align: center; padding: 10px 14px 14px; font-size: 10px; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 5px; }
   .ck-footer svg { width: 11px; height: 11px; opacity: 0.6; }
 
-  .success-bub {
-    background: #EAF4E9; border: 1.5px solid #9AC694; border-radius: 18px; border-top-left-radius: 4px;
-    padding: 14px 16px; max-width: 85%;
-  }
+  .success-bub { background: #EAF4E9; border: 1.5px solid #9AC694; border-radius: 18px; border-top-left-radius: 4px; padding: 14px 16px; max-width: 85%; }
   .success-title { font-size: 15px; font-weight: 700; color: #2E6B2A; margin-bottom: 5px; }
   .success-msg { font-size: 13px; color: #2C4A28; line-height: 1.6; }
   .success-ref { margin-top: 8px; font-size: 11px; color: #3E8A38; font-weight: 600; }
@@ -344,8 +369,7 @@
   .inp-row:focus-within { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(242,153,74,0.14); }
   .inp-icon-btn {
     background: none; border: none; cursor: pointer; color: var(--muted); padding: 2px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; transition: color 0.15s;
-    -webkit-tap-highlight-color: transparent;
+    display: flex; align-items: center; justify-content: center; transition: color 0.15s; -webkit-tap-highlight-color: transparent;
   }
   .inp-icon-btn:hover { color: var(--ink); }
   .inp-icon-btn svg { width: 18px; height: 18px; }
@@ -355,8 +379,7 @@
   }
   .inp-row input::placeholder { color: #ABA79A; }
   .send-btn {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2));
     border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
     transition: opacity 0.15s, transform 0.12s; flex-shrink: 0; -webkit-tap-highlight-color: transparent;
   }
@@ -370,56 +393,84 @@
 </style>
 </head>
 <body>
-<div class="shell" id="shell">
 
-  <!-- HEADER -->
-  <div class="hdr">
-    <div class="hdr-av" id="hdr-avatar-box">
-      <!-- Sun glyph — matches "Sunrise" branding, AI agent not a stock photo -->
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="4.2"/>
-        <path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>
-      </svg>
-    </div>
-    <div class="hdr-info">
-      <div class="hdr-name" id="hdr-company-name">Sunrise Tours</div>
-      <div class="hdr-agent-row">
-        <span class="hdr-agent-label" id="hdr-agent-tag">Travel Assistant</span>
-        <span class="agent-badge">Online</span>
+  <!-- ═══ STAND-IN HOST PAGE — represents sunrisetours.co.uk;
+       delete this block when embedding the widget for real ═══ -->
+
+
+  <!-- ═══════════════════════════════════════════
+       THE WIDGET — this is the part to embed.
+       Drop everything from here to the closing </div>
+       (class="widget") plus the <script> block onto
+       any page, right before </body>.
+  ═══════════════════════════════════════════ -->
+  <div class="widget" id="widget">
+
+    <!-- Launcher: sun-logo bubble (buzzes to draw attention) + Live Support pill -->
+    <div class="launcher-wrap" id="launcher-wrap">
+      <div class="live-pill" id="live-pill" onclick="openWidget()">
+        <span class="live-pill-dot"></span>
+        <span class="live-pill-text">
+          <span class="live-pill-title">Live Support</span>
+          <span class="live-pill-sub">We're online now</span>
+        </span>
       </div>
-    </div>
-    <button class="hdr-close" aria-label="Close">✕</button>
-  </div>
-
-  <!-- SUBHEADER TRUST BAR -->
-  <div class="subhdr" id="trust-bar"></div>
-
-  <!-- MESSAGES -->
-  <div class="msgs" id="msgs"></div>
-
-  <!-- INPUT AREA -->
-  <div class="inp-area">
-    <div class="inp-row">
-      <button class="inp-icon-btn" aria-label="Attachment">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+      <button class="launcher-btn" id="launcher-btn" onclick="openWidget()" aria-label="Open live support chat">
+        <span class="launcher-badge" id="launcher-badge">1</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>
         </svg>
       </button>
-      <button class="inp-icon-btn" aria-label="Emoji">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
-        </svg>
-      </button>
-      <input type="text" id="inp" placeholder="Ask about a trip…" onkeydown="onKey(event)" autocomplete="off" autocorrect="off" autocapitalize="sentences" />
-      <button class="send-btn" id="send-btn" onclick="send()" aria-label="Send">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
     </div>
-    <div class="inp-footer" id="inp-footer-text">Sunrise Tours · Travel Assistant</div>
-    <div class="inp-footer-powered">Powered by <a href="https://botyama.com" target="_blank" rel="noopener">botyama.com</a></div>
-  </div>
 
-</div>
+    <!-- Chat panel -->
+    <div class="shell" id="shell">
+
+      <div class="hdr">
+        <div class="hdr-av" id="hdr-avatar-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4.2"/>
+            <path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>
+          </svg>
+        </div>
+        <div class="hdr-info">
+          <div class="hdr-name" id="hdr-company-name">Sunrise Tours</div>
+          <div class="hdr-agent-row">
+            <span class="hdr-agent-label" id="hdr-agent-tag">Live Support</span>
+            <span class="agent-badge">Online</span>
+          </div>
+        </div>
+        <button class="hdr-close" onclick="closeWidget()" aria-label="Close">✕</button>
+      </div>
+
+      <div class="subhdr" id="trust-bar"></div>
+
+      <div class="msgs" id="msgs"></div>
+
+      <div class="inp-area">
+        <div class="inp-row">
+          <button class="inp-icon-btn" aria-label="Attachment">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+            </svg>
+          </button>
+          <button class="inp-icon-btn" aria-label="Emoji">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+            </svg>
+          </button>
+          <input type="text" id="inp" placeholder="Ask about a trip…" onkeydown="onKey(event)" autocomplete="off" autocorrect="off" autocapitalize="sentences" />
+          <button class="send-btn" id="send-btn" onclick="send()" aria-label="Send">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="inp-footer" id="inp-footer-text">Sunrise Tours · Live Support</div>
+        <div class="inp-footer-powered">Powered by <a href="https://botyama.com" target="_blank" rel="noopener">botyama.com</a></div>
+      </div>
+
+    </div>
+  </div>
 
 <script>
   /* ═══════════════════════════════════════════════════════════
@@ -428,8 +479,8 @@
   ═══════════════════════════════════════════════════════════ */
   const CONFIG = {
     companyName:  'Sunrise Tours',
-    agentTag:     'Travel Assistant',
-    footerText:   'Sunrise Tours · Travel Assistant',
+    agentTag:     'Live Support',
+    footerText:   'Sunrise Tours · Live Support',
     poweredByUrl: 'https://botyama.com',
     primaryColor:   '#2B2E48',
     secondaryColor: '#494e6c',   // Sunrise Tours' own site theme colour
@@ -454,8 +505,8 @@
     ],
 
     // Demo catalogue — shown when the AI reply doesn't return its own
-    // structured `properties`/`tours` array. Swap in real listings, or
-    // have your n8n workflow return `data.tours` in the same shape.
+    // structured `tours` array. Swap in real listings, or have your
+    // n8n workflow return `data.tours` in the same shape.
     demoTours: [
       {
         title: 'Isle of Wight — Beautiful Island',
@@ -504,6 +555,20 @@
   const SESSION_ID = 'trip_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now();
   let isBusy = false;
   let lastUserMessage = '';
+  let hasOpenedOnce = false;
+
+  /* ═══════════════════════════════════
+     WIDGET OPEN / CLOSE
+  ═══════════════════════════════════ */
+  function openWidget() {
+    document.getElementById('widget').classList.add('open');
+    document.getElementById('launcher-badge').style.display = 'none';
+    if (!hasOpenedOnce) { hasOpenedOnce = true; renderOpening(); }
+    setTimeout(() => document.getElementById('inp')?.focus(), 240);
+  }
+  function closeWidget() {
+    document.getElementById('widget').classList.remove('open');
+  }
 
   /* ═══════════════════════════════════
      MARKDOWN PARSER
@@ -571,7 +636,7 @@
   }
 
   /* ═══════════════════════════════════
-     RENDER OPENING
+     RENDER OPENING (fires the first time the widget is opened)
   ═══════════════════════════════════ */
   function renderOpening() {
     document.getElementById('hdr-company-name').textContent = CONFIG.companyName;
@@ -697,10 +762,6 @@
      Card anatomy: photo + duration badge + "from city" badge,
      title, price, two actions — Details (opens popup, sends
      nothing) and Book Now (sends a booking prompt to the chat).
-
-     Triggered by data.tours from the webhook (same shape as
-     CONFIG.demoTours), or falls back to the demo catalogue so
-     the widget is fully clickable out of the box.
   ═══════════════════════════════════ */
   let tourRegistry = {};
 
@@ -923,7 +984,7 @@
       const res = await fetch(CONFIG.webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: txt, source: 'sunrise_tours_chatbot', sessionId: SESSION_ID, action: 'chat' })
+        body: JSON.stringify({ message: txt, source: 'sunrise_tours_widget', sessionId: SESSION_ID, action: 'chat' })
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
@@ -963,14 +1024,13 @@
   }
 
   /* ═══════════════════════════════════
-     INIT
+     INIT — widget starts closed, launcher buzzes to
+     draw attention until the visitor taps it.
   ═══════════════════════════════════ */
-  window.addEventListener('DOMContentLoaded', () => {
-    renderOpening();
-    if (window.innerWidth >= 600) document.getElementById('inp').focus();
-  });
   window.addEventListener('resize', scrollB);
-  document.body.addEventListener('touchmove', (e) => { if (!e.target.closest('.msgs')) e.preventDefault(); }, { passive: false });
+  document.getElementById('shell').addEventListener('touchmove', (e) => {
+    if (!e.target.closest('.msgs')) e.preventDefault();
+  }, { passive: false });
 </script>
 </body>
 </html>
