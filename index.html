@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Botyama AI Leasing Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+  :root {
+    --c1: #0A0A0C;
+    --c2: #1C1730;
+    --accent: #6C4CF1;
+    --accent-tint: #EFEAFF;
+    --ink: #17161C;
+    --muted: #8B87A0;
+    --surface: #FAFAFD;
+  }
+
+  /* ══════════ LAUNCHER (dimensions/behavior per reference template) ══════════ */
+  .chat-button-wrapper {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 2147483000;
+    animation: slideIn 0.5s ease-out;
+  }
+	
+
+	
+  @keyframes slideIn {
+    from { transform: translateX(100px); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+  }
+  .chat-button-text {
+    background: var(--c1);
+    border: 1px solid var(--accent);
+    padding: 14px 24px;
+    border-radius: 30px;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 20px rgba(108,76,241,0.4);
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(108,76,241,0.4); }
+    50%      { box-shadow: 0 0 30px rgba(108,76,241,0.65); }
+  }
+  .chat-button {
+    position: relative;
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--c1), var(--c2)) !important;
+    border: 2px solid var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(108,76,241,0.5), 0 8px 30px rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    outline: none;
+  }
+  .chat-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(108,76,241,0.7), 0 12px 40px rgba(0,0,0,0.5);
+    border-color: #8F73FF;
+  }
+  .chat-button:active { transform: scale(1.02); }
+  .chat-button svg { width: 30px; height: 30px; pointer-events: none; }
+
+  .notification-badge {
+    position: absolute; top: -4px; right: -4px;
+    width: 26px; height: 26px;
+    background: #ef4444; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 13px; font-weight: 700;
+    border: 3px solid var(--c1);
+    animation: bounce 1s infinite;
+    pointer-events: none;
+  }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+  /* ══════════ CHAT CONTAINER (dimensions per reference template) ══════════ */
+  .chat-container {
+    position: fixed;
+    bottom: 120px; right: 30px;
+    width: 420px; height: 600px;
+    background: var(--surface);
+    border: 1px solid #EAE7F0;
+    border-radius: 20px;
+    box-shadow: 0 0 40px rgba(23,22,28,0.25);
+    display: none;
+    flex-direction: column;
+    z-index: 2147483647;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .chat-container.active { display: flex; animation: scaleIn 0.3s ease-out; }
+  @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  /* ─── HEADER ─── */
+  .hdr {
+    background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 100%);
+    padding: 16px 18px 14px;
+    display: flex; align-items: center; gap: 13px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+  }
+  .hdr-av {
+    width: 44px; height: 44px; border-radius: 50%;
+    overflow: hidden; flex-shrink: 0;
+    border: 2px solid rgba(108,76,241,0.55);
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hdr-av svg { width: 24px; height: 24px; }
+  .hdr-info { flex: 1; min-width: 0; }
+  .hdr-name {
+    font-family: 'Sora', sans-serif;
+    font-size: 16px; font-weight: 800;
+    color: #fff; letter-spacing: -0.01em; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hdr-agent-row { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
+  .hdr-agent-label { font-size: 10px; font-weight: 700; color: #8F73FF; letter-spacing: 0.08em; text-transform: uppercase; }
+  .agent-badge {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.22);
+    color: #fff; font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 20px;
+    letter-spacing: 0.06em; text-transform: uppercase; display: flex; align-items: center; gap: 3px;
+  }
+  .agent-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #7CC576; display: inline-block; }
+  .close-btn {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.85); width: 32px; height: 32px; border-radius: 10px;
+    cursor: pointer; font-size: 22px; font-weight: 300; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.3s;
+  }
+  .close-btn:hover { background: rgba(255,255,255,0.25); transform: rotate(90deg); }
+
+#resetBtn {
+  background: #6C4CF1 !important;
+  border-color: #6C4CF1 !important;
+  color: #FFFFFF !important;
+}
+
+#resetBtn {
+  background: #6C4CF1 !important;
+  border-color: #6C4CF1 !important;
+  color: #FFFFFF !important;
+  font-size: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#resetBtn::before {
+  content: "↻";
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1;
+  color: #FFFFFF;
+}
+
+#resetBtn:hover {
+  background: #8F73FF !important;
+  border-color: #8F73FF !important;
+}
+
+#resetBtn:active {
+  background: #6C4CF1 !important;
+  border-color: #6C4CF1 !important;
+}
+
+
+  /* ─── SUBHEADER TRUST BAR ─── */
+  .subhdr {
+    background: #fff; border-bottom: 1px solid #EAE7F0;
+    padding: 7px 16px; display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .subhdr::-webkit-scrollbar { display: none; }
+  .sub-item { display: flex; align-items: center; gap: 4px; font-size: 10.5px; color: var(--muted); font-weight: 500; white-space: nowrap; flex-shrink: 0; padding-right: 12px; }
+  .sub-item:not(:last-child) { border-right: 1px solid #E4E0EE; margin-right: 2px; }
+
+  /* ─── MESSAGES ─── */
+  .msgs {
+    flex: 1 1 auto; overflow-y: scroll; overflow-x: hidden; -webkit-overflow-scrolling: touch;
+    padding: 16px 14px 8px; display: flex; flex-direction: column; gap: 14px;
+    overscroll-behavior: contain; background: var(--surface); min-height: 0;
+    touch-action: pan-y;
+  }
+  .msgs::-webkit-scrollbar { width: 6px; }
+  .msgs::-webkit-scrollbar-thumb { background: rgba(10,10,12,0.12); border-radius: 3px; }
+
+  .date-pill { text-align: center; font-size: 11px; color: var(--muted); font-weight: 500; letter-spacing: 0.02em; padding: 2px 0 4px; }
+
+  .agent-row { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+  .agent-row-av { width: 28px; height: 28px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: linear-gradient(135deg, var(--c1), var(--c2)); display: flex; align-items: center; justify-content: center; }
+  .agent-row-av svg { width: 15px; height: 15px; }
+  .agent-row-name { font-size: 11.5px; font-weight: 700; color: var(--ink); letter-spacing: 0.01em; }
+  .agent-row-badge { font-size: 9px; font-weight: 700; color: var(--accent); background: var(--accent-tint); padding: 1px 6px; border-radius: 10px; letter-spacing: 0.05em; text-transform: uppercase; display: flex; align-items: center; gap: 3px; }
+  .agent-row-badge svg { width: 9px; height: 9px; }
+  .agent-row-time { font-size: 10px; color: var(--muted); margin-left: auto; }
+
+  .msg-group { animation: fadeUp 0.22s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .msg { display: flex; gap: 8px; margin-bottom: 4px; }
+  .msg.u { flex-direction: row-reverse; }
+  .u-av { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; background: var(--accent-tint); color: var(--accent); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; align-self: flex-end; }
+
+  .bub { max-width: 78%; padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.65; word-break: break-word; }
+  .bub.b { background: #F1EFF9; color: var(--ink); border-top-left-radius: 4px; }
+  .bub.u { background: linear-gradient(135deg, var(--c1), var(--c2)); color: #fff; border-top-right-radius: 4px; }
+
+  .bub.b strong { color: var(--accent); font-weight: 600; }
+  .bub.b em { font-style: italic; color: var(--muted); }
+  .bub.b ul, .bub.b ol { margin: 6px 0 4px 18px; }
+  .bub.b li { margin-bottom: 4px; line-height: 1.55; }
+  .bub.b p { margin-bottom: 6px; }
+  .bub.b p:last-child { margin-bottom: 0; }
+  .bub.b h3 { font-size: 14px; font-weight: 700; color: var(--ink); margin: 7px 0 4px; }
+  .bub.b a { color: var(--accent); text-decoration: underline; word-break: break-all; }
+  .bub.b code { background: #E7E2F5; color: var(--ink); border-radius: 4px; padding: 1px 5px; font-size: 12px; font-family: monospace; }
+  .bub.b blockquote { border-left: 3px solid var(--accent); padding-left: 10px; margin: 6px 0; color: var(--muted); font-style: italic; }
+  .bub.b hr { border: none; border-top: 1px solid #E4E0EE; margin: 8px 0; }
+
+  .options-wrap { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 7px; animation: fadeUp 0.25s ease 0.1s both; }
+  .opt-pill { background: #fff; border: 1.5px solid var(--accent); color: var(--accent); font-size: 13px; font-weight: 500; padding: 7px 15px; border-radius: 50px; cursor: pointer; transition: all 0.16s; white-space: normal; text-align: center; line-height: 1.35; font-family: 'Inter', sans-serif; }
+  .opt-pill:hover { background: var(--accent); color: #fff; }
+  .opt-pill:active { transform: scale(0.97); }
+  .opt-pill:disabled { opacity: 0.45; cursor: not-allowed; border-color: #CFC9E2; color: #CFC9E2; }
+
+  .tdots { display: flex; gap: 4px; align-items: center; padding: 11px 16px; background: #F1EFF9; border-radius: 18px; border-top-left-radius: 4px; width: fit-content; }
+  .d { width: 6px; height: 6px; background: var(--muted); border-radius: 50%; opacity: 0.7; animation: bop 1.2s infinite; }
+  .d:nth-child(2) { animation-delay: .2s; }
+  .d:nth-child(3) { animation-delay: .4s; }
+  @keyframes bop { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+
+  .bub.err { background: #FBE8E6; color: #A6362C; border-top-left-radius: 4px; }
+  .retry-btn { display: inline-block; margin-top: 6px; background: #fff; border: 1px solid #E5AFA8; color: #A6362C; font-size: 12px; padding: 4px 10px; border-radius: 12px; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.15s; }
+  .retry-btn:hover { background: #A6362C; color: #fff; }
+
+  .card-wrap { max-width: 94%; animation: fadeUp 0.32s ease; }
+  .card { background: #fff; border: 1px solid #EAE7F0; border-radius: 16px; border-top-left-radius: 4px; overflow: hidden; box-shadow: 0 2px 16px rgba(23,22,28,0.1); }
+  .card-hdr { background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 100%); padding: 14px 16px 12px; }
+  .card-hdr-title { font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 2px; }
+  .card-hdr-sub { font-size: 10.5px; color: rgba(255,255,255,0.62); font-weight: 400; }
+
+  .ck-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 14px 14px 10px; }
+  .ck-plan { border: 1.5px solid #E4E0EE; border-radius: 12px; padding: 10px 10px 8px; cursor: pointer; transition: all 0.18s; text-align: center; position: relative; background: #FAFAFD; }
+  .ck-plan:hover { border-color: var(--accent); background: var(--accent-tint); }
+  .ck-plan.selected { border-color: var(--accent); background: var(--accent-tint); box-shadow: 0 2px 10px rgba(108,76,241,0.22); }
+  .ck-plan.selected::after { content: '✓'; position: absolute; top: 6px; right: 8px; font-size: 11px; color: var(--accent); font-weight: 800; }
+  .ck-plan-name { font-size: 10px; font-weight: 600; color: var(--muted); margin-bottom: 4px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .ck-plan-price { font-size: 22px; font-weight: 700; color: var(--ink); line-height: 1; }
+  .ck-plan-note { font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.3; }
+
+  .card-fields { padding: 0 14px; display: flex; flex-direction: column; gap: 8px; }
+  .ck-input, .ck-select, .ck-textarea { width: 100%; padding: 10px 13px; border: 1.5px solid #E4E0EE; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px; color: var(--ink); background: #FAFAFD; outline: none; transition: border-color 0.18s, box-shadow 0.18s; }
+  .ck-textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
+  .ck-select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238B87A0' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; }
+  .ck-input:focus, .ck-select:focus, .ck-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,76,241,0.16); background: #fff; }
+  .ck-input::placeholder, .ck-textarea::placeholder { color: #A9A5BC; }
+  .field-label { font-size: 10.5px; font-weight: 600; color: var(--muted); letter-spacing: 0.03em; text-transform: uppercase; margin-bottom: -3px; }
+  .ck-error { font-size: 12px; color: #A6362C; min-height: 16px; padding: 0 2px; }
+  .ck-pay-btn { width: 100%; background: linear-gradient(135deg, var(--c1), var(--c2)); color: #fff; border: none; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer; transition: opacity 0.18s, transform 0.12s; display: flex; align-items: center; justify-content: center; gap: 7px; }
+  .ck-pay-btn:hover { opacity: 0.92; }
+  .ck-pay-btn:active { transform: scale(0.98); }
+  .ck-pay-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .ck-pay-btn .spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+  .ck-pay-btn.loading .spinner { display: block; }
+  .ck-pay-btn.loading .btn-label { opacity: 0.7; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ck-divider { height: 1px; background: #EFECF7; margin: 10px 14px; }
+  .ck-footer { text-align: center; padding: 10px 14px 14px; font-size: 10px; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 5px; }
+  .ck-footer svg { width: 11px; height: 11px; opacity: 0.6; }
+
+  .urg-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .urg-tile { border: 1.5px solid #E4E0EE; border-radius: 10px; padding: 8px 4px; text-align: center; cursor: pointer; transition: all 0.16s; font-size: 11px; font-weight: 600; color: var(--muted); background: #FAFAFD; }
+  .urg-tile.selected { border-color: var(--accent); background: var(--accent-tint); color: var(--accent); }
+  .urg-tile.selected.emergency { border-color: #C5473C; background: #FBE8E6; color: #A6362C; }
+
+  .prop-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; margin-top: 2px; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
+  .prop-scroll::-webkit-scrollbar { height: 4px; }
+  .prop-scroll::-webkit-scrollbar-thumb { background: rgba(10,10,12,0.12); border-radius: 2px; }
+  .prop-card { flex: 0 0 220px; scroll-snap-align: start; background: #fff; border: 1px solid #EAE7F0; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 14px rgba(23,22,28,0.08); display: flex; flex-direction: column; }
+  .prop-img-wrap { position: relative; width: 100%; height: 128px; background: #E4E0EE; overflow: hidden; }
+  .prop-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .prop-badge { position: absolute; top: 8px; left: 8px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.02em; padding: 4px 9px; border-radius: 20px; font-family: 'Inter', sans-serif; }
+  .prop-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .prop-title { font-family: 'Sora', sans-serif; font-size: 13.5px; font-weight: 700; color: var(--ink); line-height: 1.3; }
+  .prop-price { font-size: 18px; font-weight: 700; color: var(--accent); line-height: 1.2; }
+  .prop-price span { font-size: 11px; font-weight: 500; color: var(--muted); }
+  .prop-meta { display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: var(--muted); font-weight: 500; font-family: 'SFMono-Regular', 'Menlo', 'Consolas', monospace; letter-spacing: 0.01em; margin-top: 1px; }
+  .prop-pets { font-size: 10.5px; color: var(--muted); line-height: 1.4; }
+  .prop-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 7px; }
+  .prop-btn { width: 100%; font-size: 12.5px; font-weight: 600; padding: 8px 10px; border-radius: 9px; cursor: pointer; transition: all 0.16s; font-family: 'Inter', sans-serif; }
+  .prop-btn.view { background: #fff; border: 1.5px solid #E4E0EE; color: var(--ink); }
+  .prop-btn.view:hover { border-color: var(--accent); background: var(--accent-tint); }
+  .prop-btn.book { background: var(--accent); border: 1.5px solid var(--accent); color: #fff; }
+  .prop-btn.book:hover { opacity: 0.88; }
+
+  .prop-modal-overlay { position: absolute; inset: 0; background: rgba(10,10,12,0.55); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 40; animation: fadeUp 0.18s ease; }
+  .prop-modal { background: #fff; border-radius: 16px; width: 100%; max-width: 300px; overflow: hidden; box-shadow: 0 12px 40px rgba(10,10,12,0.32); }
+  .prop-modal-img { width: 100%; height: 140px; background: #E4E0EE; object-fit: cover; display: block; }
+  .prop-modal-body { padding: 16px 18px 18px; }
+  .prop-modal-title { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+  .prop-modal-address { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .prop-modal-price { font-size: 19px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+  .prop-modal-price span { font-size: 11px; font-weight: 500; color: var(--muted); }
+  .prop-modal-meta { display: flex; gap: 12px; font-size: 12px; color: var(--ink); font-weight: 500; padding: 10px 0; border-top: 1px solid #EFECF7; }
+  .prop-modal-pets { font-size: 12px; color: var(--ink); padding-top: 8px; line-height: 1.5; }
+  .prop-modal-pets strong { color: var(--accent); font-weight: 600; }
+  .prop-modal-close { position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border-radius: 50%; background: rgba(10,10,12,0.55); border: none; color: #fff; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .prop-modal-img-wrap { position: relative; }
+
+  .success-bub { background: #EAF4E9; border: 1.5px solid #9AC694; border-radius: 18px; border-top-left-radius: 4px; padding: 14px 16px; max-width: 85%; }
+  .success-title { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: #2E6B2A; margin-bottom: 5px; }
+  .success-msg { font-size: 13px; color: #2C4A28; line-height: 1.6; }
+  .success-ref { margin-top: 8px; font-size: 11px; color: #3E8A38; font-weight: 600; }
+
+  /* ─── INPUT AREA ─── */
+  .inp-area { padding: 10px 14px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid #EAE7F0; background: #fff; flex-shrink: 0; position: relative; z-index: 2; }
+  .inp-row { display: flex; align-items: center; gap: 8px; background: #F1EFF9; border: 1.5px solid transparent; border-radius: 26px; padding: 9px 10px 9px 16px; transition: border-color 0.2s, background 0.2s; }
+  .inp-row:focus-within { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(108,76,241,0.14); }
+  .inp-icon-btn { background: none; border: none; cursor: pointer; color: var(--muted); padding: 2px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: color 0.15s; }
+  .inp-icon-btn:hover { color: var(--ink); }
+  .inp-icon-btn svg { width: 18px; height: 18px; }
+  .inp-row input { flex: 1; background: none; border: none; outline: none; color: var(--ink); font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 400; caret-color: var(--accent); min-width: 0; }
+  .inp-row input::placeholder { color: #A9A5BC; }
+  .send-btn { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--c1), var(--c2)); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.15s, transform 0.12s; flex-shrink: 0; }
+  .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .send-btn:not(:disabled):active { opacity: 0.8; transform: scale(0.94); }
+  .send-btn svg { width: 16px; height: 16px; }
+  .inp-footer { text-align: center; margin-top: 6px; font-size: 10px; color: var(--muted); letter-spacing: 0.01em; }
+  .inp-footer-powered { text-align: center; margin-top: 2px; font-size: 9.5px; color: #BCB8CC; letter-spacing: 0.02em; }
+  .inp-footer-powered a { color: #BCB8CC; text-decoration: none; }
+  .inp-footer-powered a:hover { color: var(--accent); text-decoration: underline; }
+
+  /* ══════════ MOBILE — exact dimensions/technique per reference template ══════════ */
+  @media (max-width: 768px) {
+    .chat-button-wrapper { bottom: 20px; right: 20px; }
+    .chat-button-text { display: none; }
+    .chat-button { width: 60px; height: 60px; border-width: 2px; }
+    .chat-button svg { width: 26px; height: 26px; }
+    .notification-badge { width: 22px; height: 22px; font-size: 11px; }
+
+    .chat-container {
+      width: 100vw; height: 100vh; height: 100dvh;
+      bottom: 0; right: 0; top: 0; left: 0;
+      border-radius: 0; border: none;
+      position: fixed; z-index: 2147483647;
+    }
+    .hdr { padding: 16px 18px calc(14px + env(safe-area-inset-top)); padding-top: calc(16px + env(safe-area-inset-top)); }
+    .close-btn { width: 34px; height: 34px; font-size: 24px; }
+
+    html.chat-open, body.chat-open {
+      overflow: hidden !important;
+      height: 100% !important;
+      touch-action: none;
+      overscroll-behavior: none;
+    }
+    body.chat-open { position: fixed; width: 100%; }
+  }
+	
+/* RESET BUTTON — force color in every state */
+button[onclick*="resetBotYamaChat"],
+button[onclick*="resetBotYamaChat"]:hover,
+button[onclick*="resetBotYamaChat"]:focus,
+button[onclick*="resetBotYamaChat"]:active {
+    background: #6C4CF1 !important;
+    background-color: #6C4CF1 !important;
+    border-color: #6C4CF1 !important;
+    color: #FFFFFF !important;
+    box-shadow: none !important;
+}
+
+
+
+</style>
+</head>
+<body>
+
+  <!-- LAUNCHER -->
+  <div class="chat-button-wrapper">
+    <div class="chat-button-text">Live Demo here!</div>
+    <button class="chat-button" id="chatButton" aria-label="Open chat">
+      <div class="notification-badge" id="notificationBadge">1</div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="8" width="16" height="11" rx="3"/>
+        <path d="M9 8V6a3 3 0 0 1 6 0v2"/>
+        <circle cx="9" cy="13.5" r="1.2" fill="#fff" stroke="none"/>
+        <circle cx="15" cy="13.5" r="1.2" fill="#fff" stroke="none"/>
+        <path d="M9 17h6"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- CHAT CONTAINER -->
+  <div class="chat-container" id="chatContainer">
+
+    <div class="hdr">
+      <div class="hdr-av" id="hdr-avatar-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="8" width="16" height="11" rx="3"/>
+          <path d="M9 8V6a3 3 0 0 1 6 0v2"/>
+          <circle cx="9" cy="13.5" r="1.2" fill="var(--accent)" stroke="none"/>
+          <circle cx="15" cy="13.5" r="1.2" fill="var(--accent)" stroke="none"/>
+          <path d="M9 17h6"/>
+        </svg>
+      </div>
+      <div class="hdr-info">
+        <div class="hdr-name" id="hdr-company-name">Bot Yama AI</div>
+        <div class="hdr-agent-row">
+          <span class="hdr-agent-label" id="hdr-agent-tag">AI Leasing Assistant</span>
+          <span class="agent-badge">Online</span>
+        </div>
+      </div>
+      <!-- RESET BUTTON: wipes chat back to a fresh 0-state conversation -->
+      <button class="close-btn" id="resetBtn" title="Reset chat" aria-label="Reset chat" style="margin-right:4px;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-9.36L1 10"/>
+        </svg>
+      </button>
+      <button class="close-btn" id="closeBtn" aria-label="Close">×</button>
+    </div>
+
+    <div class="subhdr" id="trust-bar"></div>
+
+    <div class="msgs" id="msgs"></div>
+
+    <div class="inp-area">
+      <div class="inp-row">
+        <button class="inp-icon-btn" aria-label="Attachment">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+          </svg>
+        </button>
+        <button class="inp-icon-btn" aria-label="Emoji">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+          </svg>
+        </button>
+        <input type="text" id="inp" placeholder="Write a message…" onkeydown="onKey(event)" autocomplete="off" autocorrect="off" autocapitalize="sentences"/>
+        <button class="send-btn" id="send-btn" onclick="send()" aria-label="Send">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="inp-footer" id="inp-footer-text">Bot Yama AI · AI Leasing Assistant</div>
+      <div class="inp-footer-powered">Powered by <a href="https://botyama.com" target="_blank" rel="noopener">botyama.com</a></div>
+    </div>
+
+  </div>
+
+<script>
+  /* ═══ CONFIG ═══ */
+  const CONFIG = {
+    companyName: 'Bot Yama AI',
+    agentTag: 'AI Leasing Assistant',
+    currency: '$',
+    applicationFee: 50,
+    webhookUrl: 'https://sdaew2.app.n8n.cloud/webhook/BOTyama',
+    trustBadges: ['Verified Listings', '24/7 Maintenance', 'Secure Payments', 'Same-Day Tours'],
+    maintenanceCategories: ['Plumbing', 'Electrical', 'HVAC / Heating & Cooling', 'Appliance', 'Pest Control', 'Locks / Keys', 'Windows / Doors', 'Other']
+  };
+
+  /* ═══ LAUNCHER TOGGLE ═══ */
+  const chatButton = document.getElementById('chatButton');
+  const chatContainer = document.getElementById('chatContainer');
+  const closeBtn = document.getElementById('closeBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const notificationBadge = document.getElementById('notificationBadge');
+
+  function isMobile() { return window.innerWidth <= 768; }
+
+  let savedScrollY = 0;
+
+  function lockBodyScroll() {
+    savedScrollY = window.scrollY || window.pageYOffset || 0;
+    document.documentElement.classList.add('chat-open');
+    document.body.classList.add('chat-open');
+    document.body.style.top = `-${savedScrollY}px`;
+  }
+
+  function unlockBodyScroll() {
+    document.documentElement.classList.remove('chat-open');
+    document.body.classList.remove('chat-open');
+    document.body.style.top = '';
+    window.scrollTo(0, savedScrollY);
+  }
+
+  function openChat() {
+    chatContainer.classList.add('active');
+    notificationBadge.style.display = 'none';
+    if (isMobile()) lockBodyScroll();
+    setTimeout(() => document.getElementById('inp').focus(), 300);
+  }
+  function closeChat() {
+    chatContainer.classList.remove('active');
+    if (isMobile()) unlockBodyScroll();
+  }
+
+  chatButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!chatContainer.classList.contains('active')) openChat();
+  });
+  closeBtn.addEventListener('click', (e) => { e.preventDefault(); closeChat(); });
+  resetBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (confirm('Reset this chat? This clears the current conversation.')) {
+      resetBotYamaChat();
+    }
+  });
+
+  window.openChat = openChat;
+  window.closeChat = closeChat;
+
+  window.addEventListener('resize', () => {
+    if (!isMobile() && document.body.classList.contains('chat-open')) {
+      unlockBodyScroll();
+    }
+  });
+
+  chatContainer.addEventListener('touchmove', function (e) {
+    const scrollable = e.target.closest('.msgs, .prop-scroll, .subhdr, .ck-textarea');
+    if (!scrollable) e.preventDefault();
+  }, { passive: false });
+
+  /* ═══ SESSION + PERSISTENCE ═══ */
+  const SESSION_KEY = 'botyama_session_id';
+  const HISTORY_KEY = 'botyama_chat_history';
+  const BUSINESS_KEY = 'botyama_business_name';
+
+  function getOrCreateSessionId() {
+    let id = sessionStorage.getItem(SESSION_KEY);
+    if (!id) {
+      id = 'lease_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now();
+      sessionStorage.setItem(SESSION_KEY, id);
+    }
+    return id;
+  }
+
+  let SESSION_ID = getOrCreateSessionId();
+  let isBusy = false;
+  let lastUserMessage = '';
+  let businessCaptured = false;
+  let businessName = sessionStorage.getItem(BUSINESS_KEY) || '';
+  let historyLog = [];
+
+  function saveHistory() {
+    try { sessionStorage.setItem(HISTORY_KEY, JSON.stringify(historyLog)); } catch (e) {}
+  }
+  function loadHistory() {
+    try {
+      const raw = sessionStorage.getItem(HISTORY_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+  function pushHistory(entry) {
+    historyLog.push(entry);
+    saveHistory();
+  }
+
+  /* ═══ MARKDOWN PARSER ═══ */
+  function parseMarkdown(raw) {
+    let h = raw;
+    h = h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    h = h.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+    h = h.replace(/^## (.+)$/gm,'<h3>$1</h3>');
+    h = h.replace(/^# (.+)$/gm,'<h3>$1</h3>');
+    h = h.replace(/^---+$/gm,'<hr>');
+    h = h.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>');
+    h = h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    h = h.replace(/__(.+?)__/g,'<strong>$1</strong>');
+    h = h.replace(/\*(.+?)\*/g,'<em>$1</em>');
+    h = h.replace(/_(.+?)_/g,'<em>$1</em>');
+    h = h.replace(/`(.+?)`/g,'<code>$1</code>');
+    h = h.replace(/^&gt; (.+)$/gm,'<blockquote>$1</blockquote>');
+    h = h.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+    h = h.replace(/(?<!["\(>])(https?:\/\/[^\s<"'\)\]]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+    h = h.replace(/^[\-\*] (.+)$/gm,'<li>$1</li>');
+    h = h.replace(/(<li>.*<\/li>\n?)+/g,(b)=>'<ul>'+b+'</ul>');
+    h = h.replace(/^\d+\. (.+)$/gm,'<oli>$1</oli>');
+    h = h.replace(/(<oli>.*<\/oli>\n?)+/g,(b)=>'<ol>'+b.replace(/<\/?oli>/g,t=>t==='<oli>'?'<li>':'</li>')+'</ol>');
+    h = h.replace(/\n{2,}/g,'\n\n');
+    h = h.split('\n\n').map(l=>{
+      const t=l.trim();
+      if(!t) return '';
+      if(/^<(h[1-3]|ul|ol|blockquote|hr|li)/.test(t)) return t;
+      return '<p>'+t.replace(/\n/g,'<br>')+'</p>';
+    }).filter(Boolean).join('\n');
+    return h;
+  }
+
+  /* ═══ UTILITIES ═══ */
+  function scrollB() {
+    const el = document.getElementById('msgs');
+    setTimeout(()=>{ el.scrollTop = el.scrollHeight; }, 40);
+  }
+  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function getTime() { return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+  function setBusy(state) {
+    isBusy = state;
+    document.getElementById('send-btn').disabled = state;
+    document.getElementById('inp').disabled = state;
+    document.querySelectorAll('.opt-pill').forEach(b => b.disabled = state);
+  }
+  function removeOptions(id) { document.getElementById(id)?.remove(); }
+
+  function agentRowHTML() {
+    return `
+      <div class="agent-row">
+        <div class="agent-row-av">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="8" width="16" height="11" rx="3"/>
+            <path d="M9 8V6a3 3 0 0 1 6 0v2"/>
+            <circle cx="9" cy="13.5" r="1.1" fill="#fff" stroke="none"/>
+            <circle cx="15" cy="13.5" r="1.1" fill="#fff" stroke="none"/>
+          </svg>
+        </div>
+        <span class="agent-row-name">${escHtml(CONFIG.agentTag)}</span>
+        <span class="agent-row-badge">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm-.75 2.5v3.25l2.5 1.5.75-1.25-2-1.2V5.5h-1.25z"/></svg>
+          AI
+        </span>
+        <span class="agent-row-time">${getTime()}</span>
+      </div>`;
+  }
+
+  /* ═══ OPENING ═══ */
+  function renderOpeningBubbleOnly() {
+    const m = document.getElementById('msgs');
+    const grp = document.createElement('div');
+    grp.className = 'msg-group';
+    grp.id = 'opening-group';
+    grp.innerHTML = `
+      ${agentRowHTML()}
+      <div class="msg">
+        <div class="bub b">
+          <p>Welcome to the <b>${escHtml(businessName || CONFIG.companyName)} Demo!</b> </br>
+See how we respond to leads, qualify prospects, and book tours — automatically.</p>
+<p><b>Please share your name and email to continue — I'll personalize the demo for you.</b></p>
+        </div>
+      </div>
+    `;
+    m.appendChild(grp);
+    scrollB();
+  }
+
+  function renderOpening() {
+    document.getElementById('hdr-company-name').textContent = businessName || CONFIG.companyName;
+    document.getElementById('hdr-agent-tag').textContent = businessName ? 'AI Leasing Assistant (Demo)' : CONFIG.agentTag;
+    document.getElementById('inp-footer-text').textContent = CONFIG.footerText;
+
+    const tb = document.getElementById('trust-bar');
+    tb.innerHTML = CONFIG.trustBadges.map(b => `<div class="sub-item">${escHtml(b)}</div>`).join('');
+
+    const m = document.getElementById('msgs');
+
+    const dp = document.createElement('div');
+    dp.className = 'date-pill';
+    dp.textContent = new Date().toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'});
+    m.appendChild(dp);
+
+    renderOpeningBubbleOnly();
+  }
+
+  function appendUser(txt, record = true) {
+    const m = document.getElementById('msgs');
+    const grp = document.createElement('div');
+    grp.className = 'msg-group';
+    grp.innerHTML = `
+      <div style="display:flex;justify-content:flex-end;margin-bottom:4px;">
+        <span style="font-size:10px;color:var(--muted);margin-right:4px;">${getTime()}</span>
+      </div>
+      <div class="msg u">
+        <div class="u-av">You</div>
+        <div class="bub u">${escHtml(txt)}</div>
+      </div>`;
+    m.appendChild(grp);
+    scrollB();
+    if (record) pushHistory({ type: 'user', text: txt });
+  }
+
+  function appendTyping() {
+    const m = document.getElementById('msgs');
+    const id = 'ty' + Date.now();
+    const grp = document.createElement('div');
+    grp.id = id; grp.className = 'msg-group';
+    grp.innerHTML = `
+      ${agentRowHTML()}
+      <div class="msg"><div class="tdots"><div class="d"></div><div class="d"></div><div class="d"></div></div></div>`;
+    m.appendChild(grp);
+    scrollB();
+    return id;
+  }
+
+  function appendBot(rawContent, options, record = true) {
+    const m = document.getElementById('msgs');
+    const optId = 'opts_' + Date.now();
+    const grp = document.createElement('div');
+    grp.className = 'msg-group';
+    grp.innerHTML = `
+      ${agentRowHTML()}
+      <div class="msg">
+        <div class="bub b">${parseMarkdown(rawContent)}</div>
+      </div>`;
+    m.appendChild(grp);
+
+    if (Array.isArray(options) && options.length > 0) {
+      const optsDiv = document.createElement('div');
+      optsDiv.className = 'options-wrap';
+      optsDiv.id = optId;
+      options.forEach(label => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-pill';
+        btn.textContent = label;
+        btn.onclick = () => { removeOptions(optId); sendMessage(label); };
+        optsDiv.appendChild(btn);
+      });
+      m.appendChild(optsDiv);
+    }
+    scrollB();
+    if (record) pushHistory({ type: 'bot', content: rawContent, options: options || null });
+  }
+
+  function appendError() {
+    const m = document.getElementById('msgs');
+    const grp = document.createElement('div');
+    grp.className = 'msg-group';
+    grp.innerHTML = `
+      ${agentRowHTML()}
+      <div class="msg">
+        <div class="bub err">
+          Sorry, there was a connection issue. Please try again.
+          <br><button class="retry-btn" onclick="retry()">Retry</button>
+        </div>
+      </div>`;
+    m.appendChild(grp);
+    scrollB();
+  }
+
+  function retry() {
+    if (!lastUserMessage || isBusy) return;
+    document.querySelectorAll('.bub.err').forEach(e => e.closest('.msg-group')?.remove());
+    sendMessage(lastUserMessage);
+  }
+
+  /* ═══ PROPERTY RESULTS ═══ */
+  let propertyRegistry = {};
+
+  function parsePropertiesFromReply(raw) {
+    if (!raw) return null;
+    const titleRe = /\d+\.\s*\*\*([^*]+?)\*\*/g;
+    const titles = [];
+    let m;
+    while ((m = titleRe.exec(raw)) !== null) {
+      titles.push({ start: m.index, end: titleRe.lastIndex, title: m[1].trim() });
+    }
+    if (titles.length === 0) return null;
+
+    const intro = raw.slice(0, titles[0].start).trim();
+    const fieldRe = /\*\*([^*:]+):\*\*\s*([^*]+)/g;
+    const properties = [];
+
+    for (let i = 0; i < titles.length; i++) {
+      const blockStart = titles[i].end;
+      const blockEnd = i + 1 < titles.length ? titles[i + 1].start : raw.length;
+      const rawBlock = raw.slice(blockStart, blockEnd).split(/\n\s*\n/)[0];
+
+      const keptLines = [];
+      for (const line of rawBlock.split('\n')) {
+        if (line.trim() === '' || line.includes('**')) {
+          keptLines.push(line);
+        } else {
+          break;
+        }
+      }
+      const block = keptLines.join('\n');
+
+      const fields = {};
+      let fm;
+      fieldRe.lastIndex = 0;
+      while ((fm = fieldRe.exec(block)) !== null) {
+        const label = fm[1].trim().toLowerCase();
+        const value = fm[2].replace(/\s+/g, ' ').trim().replace(/^-+\s*/, '').replace(/[\s-]+$/, '');
+        if (value) fields[label] = value;
+      }
+
+      const priceRaw = fields['price'] || fields['rent'] || fields['monthly rent'] || '';
+      const priceNum = priceRaw.replace(/[^0-9.]/g, '');
+      const avail = fields['availability date'] || fields['available'] || fields['move-in date'] || '';
+      const imageMatch = rawBlock.match(/\[IMAGE_START\](.*?)\[IMAGE_END\]/);
+      const image = imageMatch ? imageMatch[1].trim() : null;
+
+      properties.push({
+        address: titles[i].title,
+        price: priceNum || priceRaw || null,
+        priceSuffix: priceNum ? '/mo' : '',
+        beds: fields['bedrooms'] || fields['beds'] || null,
+        baths: fields['bathrooms'] || fields['baths'] || null,
+        sqft: fields['sqft'] || fields['square feet'] || null,
+        badge: avail ? ('Available ' + avail) : '',
+        pets: fields['pet policy'] || fields['pets'] || '',
+        image: image
+      });
+    }
+    return { intro, properties };
+  }
+
+  function appendPropertyCards(properties, record = true) {
+    if (!Array.isArray(properties) || properties.length === 0) return;
+    const m = document.getElementById('msgs');
+    const grp = document.createElement('div');
+    grp.className = 'msg-group';
+
+    const cardsHtml = properties.map((p, i) => {
+      const key = 'p_' + Date.now() + '_' + i;
+      propertyRegistry[key] = p;
+
+      const img = p.image
+        ? `<img src="${escHtml(p.image)}" alt="${escHtml(p.address || 'Property photo')}" onerror="this.closest('.prop-img-wrap').innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;color:#A9A5BC;font-size:11px;\\'>No photo available</div>'"/>`
+        : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#A9A5BC;font-size:11px;">No photo available</div>`;
+
+      const price = p.price ? `${CONFIG.currency}${p.price}` : 'Contact for price';
+      const priceSuffix = p.priceSuffix || (p.price ? '/mo' : '');
+      const metaParts = [];
+      if (p.beds != null) metaParts.push(`${escHtml(p.beds)} bed`);
+      if (p.baths != null) metaParts.push(`${escHtml(p.baths)} bath`);
+      if (p.sqft != null) metaParts.push(`${escHtml(p.sqft)} sqft`);
+
+      return `
+        <div class="prop-card">
+          <div class="prop-img-wrap">
+            ${img}
+            ${p.badge ? `<div class="prop-badge">${escHtml(p.badge)}</div>` : ''}
+          </div>
+          <div class="prop-body">
+            ${p.address ? `<div class="prop-title">${escHtml(p.address)}</div>` : ''}
+            <div class="prop-price">${escHtml(price)}${priceSuffix ? `<span> ${escHtml(priceSuffix)}</span>` : ''}</div>
+            ${metaParts.length ? `<div class="prop-meta">${metaParts.join(' &middot; ')}</div>` : ''}
+            ${p.pets ? `<div class="prop-pets">${escHtml(p.pets)}</div>` : ''}
+            <div class="prop-actions">
+              <button class="prop-btn view" onclick="showPropertyDetails('${key}')">View</button>
+              <button class="prop-btn book" onclick="sendMessage('Book a tour for ' + '${escHtml(p.address || 'this property')}')">Book tour</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    grp.innerHTML = `${agentRowHTML()}<div class="prop-scroll">${cardsHtml}</div>`;
+    m.appendChild(grp);
+    scrollB();
+    if (record) pushHistory({ type: 'properties', properties });
+  }
+
+  function showPropertyDetails(key) {
+    const p = propertyRegistry[key];
+    if (!p) return;
+    document.getElementById('prop-modal-overlay')?.remove();
+
+    const container = document.getElementById('chatContainer');
+    const overlay = document.createElement('div');
+    overlay.id = 'prop-modal-overlay';
+    overlay.className = 'prop-modal-overlay';
+    overlay.onclick = (e) => { if (e.target === overlay) closePropertyDetails(); };
+
+    const price = p.price ? `${CONFIG.currency}${p.price}` : 'Contact for price';
+    const priceSuffix = p.priceSuffix || (p.price ? '/mo' : '');
+    const img = p.image
+      ? `<img class="prop-modal-img" src="${escHtml(p.image)}" alt="${escHtml(p.address || 'Property photo')}" onerror="this.style.display='none'"/>`
+      : `<div class="prop-modal-img" style="display:flex;align-items:center;justify-content:center;color:#A9A5BC;font-size:12px;">No photo available</div>`;
+
+    const metaParts = [];
+    if (p.beds != null) metaParts.push(`${escHtml(p.beds)} bed`);
+    if (p.baths != null) metaParts.push(`${escHtml(p.baths)} bath`);
+    if (p.sqft != null) metaParts.push(`${escHtml(p.sqft)} sqft`);
+
+    overlay.innerHTML = `
+      <div class="prop-modal">
+        <div class="prop-modal-img-wrap">
+          ${img}
+          <button class="prop-modal-close" onclick="closePropertyDetails()" aria-label="Close">✕</button>
+        </div>
+        <div class="prop-modal-body">
+          ${p.address ? `<div class="prop-modal-title">${escHtml(p.address)}</div>` : ''}
+          ${p.badge ? `<div class="prop-modal-address">${escHtml(p.badge)}</div>` : ''}
+          <div class="prop-modal-price">${escHtml(price)}${priceSuffix ? `<span> ${escHtml(priceSuffix)}</span>` : ''}</div>
+          ${metaParts.length ? `<div class="prop-modal-meta">${metaParts.map(x=>`<span>${x}</span>`).join('')}</div>` : ''}
+          ${p.pets ? `<div class="prop-modal-pets"><strong>Pets:</strong> ${escHtml(p.pets)}</div>` : ''}
+        </div>
+      </div>`;
+
+    container.appendChild(overlay);
+  }
+
+  function closePropertyDetails() { document.getElementById('prop-modal-overlay')?.remove(); }
+
+  /* ═══ PAYMENT CARD ═══ */
+  let selectedAmount = CONFIG.applicationFee;
+  let selectedPlan = 'Application Fee';
+
+  function appendPaymentCard() {
+    document.getElementById('payment-card')?.remove();
+    const m = document.getElementById('msgs');
+    const grp = document.createElement('div');
+    grp.id = 'payment-card'; grp.className = 'msg-group';
+    grp.innerHTML = `
+      ${agentRowHTML()}
+      <div class="card-wrap">
+        <div class="card">
+          <div class="card-hdr">
+            <div class="card-hdr-title">Request a Payment Link</div>
+            <div class="card-hdr-sub">We'll email you a secure link to pay</div>
+          </div>
+          <div class="ck-plans">
+            <div class="ck-plan selected" id="plan-appfee" onclick="selectPlan('appfee')">
+              <div class="ck-plan-name">Application Fee</div>
+              <div class="ck-plan-price">${CONFIG.currency}${CONFIG.applicationFee}</div>
+              <div class="ck-plan-note">One-time, non-refundable</div>
+            </div>
+            <div class="ck-plan" id="plan-rent" onclick="selectPlan('rent')">
+              <div class="ck-plan-name">Pay Rent</div>
+              <div class="ck-plan-price">${CONFIG.currency}—</div>
+              <div class="ck-plan-note">Enter your amount below</div>
+            </div>
+          </div>
+          <div class="card-fields">
+            <input class="ck-input" type="text" id="ck-unit" placeholder="Unit / Apt Number" autocomplete="off"/>
+            <input class="ck-input" id="ck-rent-amount" type="number" min="1" step="0.01" placeholder="Rent amount (${CONFIG.currency})" style="display:none;"/>
+            <input class="ck-input" type="text" id="ck-name" placeholder="Full Name" autocomplete="name"/>
+            <input class="ck-input" type="email" id="ck-email" placeholder="Email Address" autocomplete="email"/>
+            <div id="ck-error" class="ck-error"></div>
+          </div>
+          <div class="ck-divider"></div>
+          <div style="padding:0 14px;">
+            <button class="ck-pay-btn" id="ck-pay-btn" onclick="handlePayment()">
+              <div class="spinner"></div>
+              <span class="btn-label">Send Payment Link</span>
+            </button>
+          </div>
+          <div class="ck-footer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Your details are sent securely to our leasing office
+          </div>
+        </div>
+      </div>`;
+    m.appendChild(grp);
+    scrollB();
+  }
+
+  function selectPlan(plan) {
+    document.querySelectorAll('.ck-plan').forEach(p => p.classList.remove('selected'));
+    const rentInput = document.getElementById('ck-rent-amount');
+    const btn = document.getElementById('ck-pay-btn');
+    if (plan === 'appfee') {
+      selectedPlan = 'Application Fee'; selectedAmount = CONFIG.applicationFee;
+      document.getElementById('plan-appfee').classList.add('selected');
+      rentInput.style.display = 'none';
+      btn.querySelector('.btn-label').textContent = `Send Payment Link`;
+    } else {
+      selectedPlan = 'Rent Payment';
+      document.getElementById('plan-rent').classList.add('selected');
+      rentInput.style.display = 'block';
+      selectedAmount = parseFloat(rentInput.value) || 0;
+      btn.querySelector('.btn-label').textContent = `Send Payment Link`;
+      rentInput.oninput = () => { selectedAmount = parseFloat(rentInput.value) || 0; };
+    }
+  }
+
+  async function handlePayment() {
+    const unit = document.getElementById('ck-unit')?.value.trim();
+    const name = document.getElementById('ck-name')?.value.trim();
+    const email = document.getElementById('ck-email')?.value.trim();
+    const errEl = document.getElementById('ck-error');
+    if (!unit) { errEl.textContent = 'Please enter your unit / apartment number.'; return; }
+    if (!name) { errEl.textContent = 'Please enter your full name.'; return; }
+    if (!email || !email.includes('@')) { errEl.textContent = 'Please enter a valid email address.'; return; }
+    if (selectedPlan === 'Rent Payment' && (!selectedAmount || selectedAmount <= 0)) {
+      errEl.textContent = 'Please enter a valid rent amount.'; return;
+    }
+    errEl.textContent = '';
+    const btn = document.getElementById('ck-pay-btn');
+    btn.disabled = true; btn.classList.add('loading');
+    try {
+      const res = await fetch(CONFIG.webhookUrl, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'request_payment_link', amount: selectedAmount, plan: selectedPlan, unit, name, email, sessionId: SESSION_ID })
+      });
+      if (!res.ok) throw new Error('Could not send your request. Please try again.');
+      const data = await res.json().catch(() => ({}));
+      document.getElementById('payment-card')?.remove();
+      appendPaymentSuccess(name, email, selectedAmount, selectedPlan, data.reference);
+    } catch (err) {
+      errEl.textContent = err.message || 'Something went wrong. Please try again.';
+      btn.disabled = false; btn.classList.remove('loading');
+    }
+  }
+
+  function appendPaymentSuccess(name, email, amount, plan, reference) {
+    const m = document.getElementById('msgs');
+    const firstName = name.split(' ')[0];
+    const refShort = reference ? String(reference).slice(-8).toUpperCase() : Math.random().toString(36).slice(2, 8).toUpperCase();
+    const amountTxt = amount ? `${CONFIG.currency}${(+amount).toFixed(2)}` : '';
+    const grp = document.createElement('div');
+    grp.className = 'msg-group';
+    grp.innerHTML = `
+      ${agentRowHTML()}
+      <div class="msg">
+        <div class="success-bub">
+          <div class="success-title">Request Received, ${escHtml(firstName)}</div>
+          <div class="success-msg">
+            We're preparing a secure payment link for your ${escHtml(plan)}${amountTxt ? ` of <strong>${amountTxt}</strong>` : ''}.
+            It will be sent to <strong>${escHtml(email)}</strong> shortly.
+          </div>
+          <div class="success-ref">Ref: #${refShort}</div>
+        </div>
+      </div>`;
+    m.appendChild(grp);
+    scrollB();
+  }
+
+  /* ═══ MAINTENANCE REQUEST CARD ═══ */
+  let selectedUrgency = 'Routine';
+
+  function appendMaintenanceCard() {
+    document.getElementById('maintenance-card')?.remove();
+    const m = document.getElementById('msgs');
+    selectedUrgency = 'Routine';
+
+    const catOptions = CONFIG.maintenanceCategories.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+
+    const grp = document.createElement('div');
+    grp.id = 'maintenance-card'; grp.className = 'msg-group';
+    grp.innerHTML = `
+      ${agentRowHTML()}
+      <div class="card-wrap">
+        <div class="card">
+          <div class="card-hdr">
+            <div class="card-hdr-title">Maintenance Request</div>
+            <div class="card-hdr-sub">We'll route this to your property team</div>
+          </div>
+          <div class="card-fields" style="padding-top:14px;">
+            <input class="ck-input" type="text" id="mr-name" placeholder="Full Name" autocomplete="name"/>
+            <input class="ck-input" type="text" id="mr-unit" placeholder="Unit / Apt Number" autocomplete="off"/>
+            <select class="ck-select" id="mr-category">
+              <option value="" disabled selected>Issue Category</option>
+              ${catOptions}
+            </select>
+            <div class="field-label">Urgency</div>
+            <div class="urg-row">
+              <div class="urg-tile selected" id="urg-routine" onclick="selectUrgency('Routine')">Routine</div>
+              <div class="urg-tile" id="urg-urgent" onclick="selectUrgency('Urgent')">Urgent</div>
+              <div class="urg-tile" id="urg-emergency" onclick="selectUrgency('Emergency')">Emergency</div>
+            </div>
+            <textarea class="ck-textarea" id="mr-desc" placeholder="Briefly describe the issue…"></textarea>
+            <div id="mr-error" class="ck-error"></div>
+          </div>
+          <div class="ck-divider"></div>
+          <div style="padding:0 14px 14px;">
+            <button class="ck-pay-btn" id="mr-submit-btn" onclick="handleMaintenanceSubmit()">
+              <div class="spinner"></div>
+              <span class="btn-label">Submit Request</span>
+            </button>
+          </div>
+        </div>
+      </div>`;
+    m.appendChild(grp);
+    scrollB();
+  }
+
+  function selectUrgency(level) {
+    selectedUrgency = level;
+    document.querySelectorAll('.urg-tile').forEach(t => t.classList.remove('selected', 'emergency'));
+    if (level === 'Routine') document.getElementById('urg-routine').classList.add('selected');
+    if (level === 'Urgent') document.getElementById('urg-urgent').classList.add('selected');
+    if (level === 'Emergency') document.getElementById('urg-emergency').classList.add('selected', 'emergency');
+  }
+
+  async function handleMaintenanceSubmit() {
+    const name = document.getElementById('mr-name')?.value.trim();
+    const unit = document.getElementById('mr-unit')?.value.trim();
+    const category = document.getElementById('mr-category')?.value;
+    const desc = document.getElementById('mr-desc')?.value.trim();
+    const errEl = document.getElementById('mr-error');
+
+    if (!name) { errEl.textContent = 'Please enter your full name.'; return; }
+    if (!unit) { errEl.textContent = 'Please enter your unit / apartment number.'; return; }
+    if (!category) { errEl.textContent = 'Please select an issue category.'; return; }
+    if (!desc) { errEl.textContent = 'Please briefly describe the issue.'; return; }
+    errEl.textContent = '';
+
+    const btn = document.getElementById('mr-submit-btn');
+    btn.disabled = true; btn.classList.add('loading');
+
+    try {
+      const res = await fetch(CONFIG.webhookUrl, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'submit_maintenance_request', name, unit, category, urgency: selectedUrgency, description: desc, sessionId: SESSION_ID })
+      });
+      if (!res.ok) throw new Error('Could not submit your request. Please try again.');
+      const data = await res.json().catch(() => ({}));
+      document.getElementById('maintenance-card')?.remove();
+      appendMaintenanceSuccess(name, category, selectedUrgency, data.ticketId);
+    } catch (err) {
+      errEl.textContent = err.message || 'Something went wrong. Please try again.';
+      btn.disabled = false; btn.classList.remove('loading');
+    }
+  }
+
+  function appendMaintenanceSuccess(name, category, urgency, ticketId) {
+    const m = document.getElementById('msgs');
+    const firstName = name.split(' ')[0];
+    const ref = ticketId ? String(ticketId).slice(-8).toUpperCase() : Math.random().toString(36).slice(2, 8).toUpperCase();
+    const grp = document.createElement('div');
+    grp.className = 'msg-group';
+    grp.innerHTML = `
+      ${agentRowHTML()}
+      <div class="msg">
+        <div class="success-bub">
+          <div class="success-title">Request Submitted, ${escHtml(firstName)}</div>
+          <div class="success-msg">
+            Your <strong>${escHtml(category)}</strong> request (${escHtml(urgency)}) has been sent to the maintenance team.
+            ${urgency === 'Emergency' ? "For safety-related emergencies, please also call your property's emergency line directly." : "You'll receive updates by email."}
+          </div>
+          <div class="success-ref">Ticket #${ref}</div>
+        </div>
+      </div>`;
+    m.appendChild(grp);
+    scrollB();
+  }
+
+  /* ═══ SEND LOGIC ═══ */
+  function onKey(e) { if (e.key === 'Enter' && !isBusy) send(); }
+
+  function send() {
+    const inp = document.getElementById('inp');
+    const txt = inp.value.trim();
+    if (!txt || isBusy) return;
+    inp.value = ''; inp.focus();
+    sendMessage(txt);
+  }
+
+  async function sendMessage(txt) {
+    if (isBusy) return;
+    lastUserMessage = txt;
+    setBusy(true);
+    appendUser(txt);
+    const tid = appendTyping();
+    scrollB();
+
+    try {
+      const res = await fetch(CONFIG.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: txt, source: 'leasing_chatbot', sessionId: SESSION_ID, action: 'chat', businessName })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      document.getElementById(tid)?.remove();
+
+      const returnedBusinessName = data.business_name || data.businessName
+        || (data.output && (data.output.business_name || data.output.businessName));
+      if (returnedBusinessName && returnedBusinessName !== businessName) {
+        businessName = returnedBusinessName;
+        businessCaptured = true;
+        sessionStorage.setItem(BUSINESS_KEY, businessName);
+        document.getElementById('hdr-company-name').textContent = businessName;
+        document.getElementById('hdr-agent-tag').textContent = 'AI Leasing Assistant (Demo)';
+      }
+
+      const reply = data.message || data.reply || data.text || "Thanks for reaching out — I've got your message.";
+
+      const strippedReply = reply
+        .replace(/\[show_payment\]/gi, '')
+        .replace(/\[show_maintenance\]/gi, '')
+        .replace(/\[show_properties\]/gi, '')
+        .trim();
+
+      let propertiesToShow = null;
+      let cleanReply = strippedReply;
+
+      if (Array.isArray(data.properties) && data.properties.length > 0) {
+        propertiesToShow = data.properties;
+      } else {
+        const parsed = parsePropertiesFromReply(strippedReply);
+        if (parsed && parsed.properties.length > 0) {
+          propertiesToShow = parsed.properties;
+          cleanReply = parsed.intro || 'Here are some available properties:';
+        }
+      }
+
+      appendBot(cleanReply, data.buttons);
+
+      const wantsPayment = data.action === 'show_payment' || /\[show_payment\]/i.test(reply);
+      const wantsMaintenance = data.action === 'show_maintenance' || /\[show_maintenance\]/i.test(reply);
+
+      if (wantsPayment) setTimeout(() => appendPaymentCard(), 700);
+      if (wantsMaintenance) setTimeout(() => appendMaintenanceCard(), 700);
+      if (propertiesToShow) setTimeout(() => appendPropertyCards(propertiesToShow), 700);
+
+    } catch (err) {
+      document.getElementById(tid)?.remove();
+      appendError();
+    } finally {
+      setBusy(false);
+      document.getElementById('inp').focus();
+    }
+  }
+
+  /* ═══ RESET ═══ */
+  // Wipes the conversation back to 0: new session id, cleared history,
+  // cleared business-name personalization, fresh welcome message.
+  // Call this from your reset button: onclick="resetBotYamaChat()"
+  window.resetBotYamaChat = function () {
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(HISTORY_KEY);
+    sessionStorage.removeItem(BUSINESS_KEY);
+
+    SESSION_ID = getOrCreateSessionId();
+    historyLog = [];
+    businessName = '';
+    businessCaptured = false;
+    propertyRegistry = {};
+
+    document.getElementById('prop-modal-overlay')?.remove();
+    document.getElementById('payment-card')?.remove();
+    document.getElementById('maintenance-card')?.remove();
+
+    const m = document.getElementById('msgs');
+    m.innerHTML = '';
+
+    renderOpening();
+    pushHistory({ type: 'opening' });
+  };
+
+  /* ═══ INIT ═══ */
+  function initChat() {
+    const saved = loadHistory();
+
+    if (saved.length > 0) {
+      document.getElementById('hdr-company-name').textContent = businessName || CONFIG.companyName;
+      document.getElementById('hdr-agent-tag').textContent = businessName ? 'AI Leasing Assistant (Demo)' : CONFIG.agentTag;
+      document.getElementById('inp-footer-text').textContent = CONFIG.footerText;
+
+      const tb = document.getElementById('trust-bar');
+      tb.innerHTML = CONFIG.trustBadges.map(b => `<div class="sub-item">${escHtml(b)}</div>`).join('');
+
+      const dp = document.createElement('div');
+      dp.className = 'date-pill';
+      dp.textContent = new Date().toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'});
+      document.getElementById('msgs').appendChild(dp);
+
+      historyLog = saved;
+      saved.forEach(entry => {
+        if (entry.type === 'opening') renderOpeningBubbleOnly();
+        else if (entry.type === 'user') appendUser(entry.text, false);
+        else if (entry.type === 'bot') appendBot(entry.content, entry.options, false);
+        else if (entry.type === 'properties') appendPropertyCards(entry.properties, false);
+      });
+    } else {
+      renderOpening();
+      pushHistory({ type: 'opening' });
+    }
+  }
+
+  initChat();
+</script>
+</body>
+</html>
