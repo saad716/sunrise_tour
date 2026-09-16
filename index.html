@@ -38,7 +38,7 @@
   ═══════════════════════════════════════════ */
   .widget {
     position: fixed; right: 20px; bottom: 20px;
-    z-index: 999999;
+    z-index: 2147483000;
     display: flex; flex-direction: column; align-items: flex-end;
     gap: 12px;
   }
@@ -54,6 +54,8 @@
     transform: translateY(16px) scale(0.96);
     opacity: 0; pointer-events: none;
     transition: transform 0.22s cubic-bezier(.2,.9,.3,1.2), opacity 0.18s ease;
+   isolation: isolate;
+  z-index: 2147483647;
   }
   .widget.open .shell { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
 
@@ -389,6 +391,13 @@
   .inp-footer-powered { text-align: center; margin-top: 2px; font-size: 9.5px; color: #BDB9AC; letter-spacing: 0.02em; }
   .inp-footer-powered a { color: #BDB9AC; text-decoration: none; }
   .inp-footer-powered a:hover { color: var(--c2); text-decoration: underline; }
+ html.chat-open, body.chat-open {
+  overflow: hidden !important;
+  height: 100% !important;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+body.chat-open { position: fixed; width: 100%; }
 </style>
 </head>
 <body>
@@ -552,18 +561,35 @@
   let lastUserMessage = '';
   let hasOpenedOnce = false;
 
+ let savedScrollY = 0;
+function isMobile() { return window.innerWidth <= 480; }
+
+function lockBodyScroll() {
+  savedScrollY = window.scrollY || window.pageYOffset || 0;
+  document.documentElement.classList.add('chat-open');
+  document.body.classList.add('chat-open');
+  document.body.style.top = `-${savedScrollY}px`;
+}
+function unlockBodyScroll() {
+  document.documentElement.classList.remove('chat-open');
+  document.body.classList.remove('chat-open');
+  document.body.style.top = '';
+  window.scrollTo(0, savedScrollY);
+}
   /* ═══════════════════════════════════
      WIDGET OPEN / CLOSE
   ═══════════════════════════════════ */
-  function openWidget() {
-    document.getElementById('widget').classList.add('open');
-    document.getElementById('launcher-badge').style.display = 'none';
-    if (!hasOpenedOnce) { hasOpenedOnce = true; renderOpening(); }
-    setTimeout(() => document.getElementById('inp')?.focus(), 240);
-  }
-  function closeWidget() {
-    document.getElementById('widget').classList.remove('open');
-  }
+ function openWidget() {
+  document.getElementById('widget').classList.add('open');
+  document.getElementById('launcher-badge').style.display = 'none';
+  if (!hasOpenedOnce) { hasOpenedOnce = true; renderOpening(); }
+  if (isMobile()) lockBodyScroll();
+  setTimeout(() => document.getElementById('inp')?.focus(), 240);
+}
+function closeWidget() {
+  document.getElementById('widget').classList.remove('open');
+  if (isMobile()) unlockBodyScroll();
+}
 
   /* ═══════════════════════════════════
      MARKDOWN PARSER
