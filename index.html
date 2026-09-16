@@ -87,8 +87,8 @@
      not nested inside the launcher's container ══════════ */
   .chat-container {
     position: fixed;
-    bottom: 96px; right: 20px;
-    width: 380px; height: 640px; max-height: calc(100vh - 116px);
+    bottom: 120px; right: 30px;
+    width: 420px; height: 600px;
     background: var(--surface);
     border-radius: 18px;
     box-shadow: 0 20px 56px rgba(28,27,42,0.28), 0 4px 14px rgba(28,27,42,0.14);
@@ -101,7 +101,7 @@
   .chat-container.active { display: flex; animation: scaleIn 0.3s ease-out; }
   @keyframes scaleIn { from { transform: scale(0.92) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
 
-  @media (max-width: 480px) {
+  @media (max-width: 768px) {
     .launcher-wrap { right: 12px; bottom: 12px; }
     .chat-container {
       width: 100vw; height: 100vh; height: 100dvh;
@@ -564,7 +564,7 @@
   document.body.appendChild(launcherWrap);
   document.body.appendChild(chatContainer);
 
-  function isMobile() { return window.innerWidth <= 480; }
+  function isMobile() { return window.innerWidth <= 768; }
 
   let savedScrollY = 0;
   function lockBodyScroll() {
